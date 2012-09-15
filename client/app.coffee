@@ -5,7 +5,7 @@ console.log('extension script loaded with jquery and underscore')
 # check when 'compose' view is loaded
 window.addEventListener 'hashchange', ->
   console.log window.location.hash
-  if window.location.has.match /compose/
+  if window.location.hash.match /compose/
     payment.renderButton()
 
 MAIN_FRAME_SELECTOR = '#canvas_frame'
