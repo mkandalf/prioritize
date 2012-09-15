@@ -1,0 +1,35 @@
+/* Sensible defaults */
+* {
+  position: relative;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+a {
+  color: #444;
+  text-decoration: none;
+  -webkit-transition: compact(color 0.1s linear, false, false, false, false, false, false, false, false);
+  -moz-transition: compact(color 0.1s linear, false, false, false, false, false, false, false, false);
+  -ms-transition: compact(color 0.1s linear, false, false, false, false, false, false, false, false);
+  -o-transition: compact(color 0.1s linear, false, false, false, false, false, false, false, false);
+  transition: compact(color 0.1s linear, false, false, false, false, false, false, false, false); }
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0; }
+
+hr {
+  border-top: 1px solid #999;
+  border-bottom: 1px solid #FFF; }
+
+.hidden {
+  display: none; }
+
+.clear {
+  clear: both; }
+
+/* Main styles */
+body {
+  font-size: 18px;
+  line-height: 24px; }
