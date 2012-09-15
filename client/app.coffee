@@ -24,8 +24,22 @@ payment =
 
 inbox =
   sort: ->
-    $(MAIN_FRAME_SELECTOR).load ->
-      
+    $emails = $('#canvas_frame').contents().find('table > colgroup').eq(1).parent().find('tr')
+    emails = _(emails).map (email, i) ->
+      subject = email.find('td[role=link] div > span:first-child').text()
+      value = subject.match /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/
+      if value?
+        value = parseFloat value[0][1:-2]
+      else
+        value = 0
+      subject: subject
+      value: value
+      index: i
+    console.log emails
+
+$(MAIN_FRAME_SELECTOR).load ->
+  console.log 'loaded'
+  inbox.sort()
 
 # DOM ready
 $ ->
