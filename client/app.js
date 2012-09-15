@@ -15,7 +15,7 @@
 
   MAIN_FRAME_SELECTOR = '#canvas_frame';
 
-  PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/;
+  PAYMENT_FIELD_REGEX = /^\[\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\]/;
 
   template = function(domId) {
     return _.template(($("#" + domId).html() || "").trim());
@@ -33,27 +33,32 @@
 
   payment = {
     renderButton: function() {
-      var $actions, $frame;
+      var $actions, $frame, $paymentButton;
       $frame = $(MAIN_FRAME_SELECTOR);
       linkCSS($frame);
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
       $actions.children('span').remove();
-      $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
-      return $actions.find('#payment-button').on('click', function(e) {
+      $actions.children().last().before('<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>');
+      $paymentButton = $actions.find('#payment-button');
+      $paymentButton.click(function(e) {
         return $(this).find('input').focus();
       });
+      return $paymentButton.find('input').blur(payment.paymentFieldHandler);
     },
     hasCreatedPayment: false,
     paymentFieldHandler: function(e) {
-      var $subject, amount, hasCreatedPayment;
+      var $subject, amount;
       amount = $(e.currentTarget).val();
       console.log(amount);
       $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]');
-      if (hasCreatedPayment) {
-        return $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "$" + amount + "$"));
+      if ((amount * 1) === 0) {
+        $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "").trim());
+        return payment.hasCreatedPayment = false;
+      } else if (payment.hasCreatedPayment) {
+        return $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "[$" + amount + "]"));
       } else {
-        hasCreatedPayment = true;
-        return $subject.val("$" + amount + "$ " + ($subject.val()));
+        payment.hasCreatedPayment = true;
+        return $subject.val("[$" + amount + "] " + ($subject.val()));
       }
     }
   };
