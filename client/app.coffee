@@ -1,6 +1,6 @@
 'use strict'
 
-console.log('extension script loaded with jquery and underscore')
+console.log('Value for Gmail extension script loaded')
 
 # check when 'compose' view is loaded
 window.addEventListener 'hashchange', ->
@@ -8,6 +8,7 @@ window.addEventListener 'hashchange', ->
   if window.location.hash.match /compose/
     payment.renderButton()
 
+# the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 
 # all kinds of payment stuffs
@@ -20,21 +21,27 @@ payment =
                                      .last().children().first()
 
     # append '$' in compose view after email actions
-    $actions.append('<div class="J-J5-Ji">$</div>').children('span').remove()
+    $actions.append('<div id="payment-button">$</div>')
+            .children('span').remove()
 
 inbox =
   sort: ->
-    $emails = $('#canvas_frame').contents().find('table > colgroup').eq(1).parent().find('tr')
+    $emails = $(MAIN_FRAME_SELECTOR).contents().find('table > colgroup')
+                                    .eq(1).parent().find('tr')
+
     emails = _(emails).map (email, i) ->
       subject = email.find('td[role=link] div > span:first-child').text()
+      # regex for our payment field format
       value = subject.match /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/
       if value?
+        # strip off leading $ signs
         value = parseFloat value[0][1:-2]
       else
         value = 0
       subject: subject
       value: value
       index: i
+
     console.log emails
 
 $(MAIN_FRAME_SELECTOR).load ->
@@ -44,3 +51,4 @@ $(MAIN_FRAME_SELECTOR).load ->
 # DOM ready
 $ ->
   $(window).trigger 'hashchange'
+
