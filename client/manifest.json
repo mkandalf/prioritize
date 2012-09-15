@@ -8,7 +8,7 @@
     "default_title": "Value for Gmail"
   }
 , "background": {
-      "page": ["templates/signin.html"]
+    "pages": ["templates/signin.html"]
     }
 , "content_scripts": [
     {
