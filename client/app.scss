@@ -35,9 +35,10 @@ body {
 
 #payment-button {
   @include linear-gradient(#F5F5F5, #F1F1F1);
+  @include border-radius(3px);
   border: 1px solid rgba(0,0,0,0.1);
   color: #444;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: bold;
   text-align: center;
   white-space: nowrap;
@@ -45,6 +46,7 @@ body {
   height: 27px;
   line-height: 27px;
   padding: 0 8px;
+  float: left;
 }
 
 /* Table magic */

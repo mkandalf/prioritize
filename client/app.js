@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  var MAIN_FRAME_SELECTOR, inbox, payment;
+  var MAIN_FRAME_SELECTOR, inbox, linkCSS, payment;
 
   console.log('Value for Gmail extension script loaded');
 
@@ -15,10 +15,22 @@
 
   MAIN_FRAME_SELECTOR = '#canvas_frame';
 
+  linkCSS = function($frame) {
+    console.log($frame.contents().find('head'));
+    console.log(chrome.extension.getURL('app.css'));
+    return $frame.contents().find('head').append($('<link/>', {
+      rel: 'stylesheet',
+      type: 'text/css',
+      href: chrome.extension.getURL('app.css')
+    }));
+  };
+
   payment = {
     renderButton: function() {
-      var $actions;
-      $actions = $(MAIN_FRAME_SELECTOR).contents().find('div[role=navigation]').last().children().first();
+      var $actions, $frame;
+      $frame = $(MAIN_FRAME_SELECTOR);
+      linkCSS($frame);
+      $actions = $frame.contents().find('div[role=navigation]').last().children().first();
       return $actions.append('<div id="payment-button">$</div>').children('span').remove();
     }
   };
@@ -49,12 +61,13 @@
   };
 
   $(MAIN_FRAME_SELECTOR).load(function() {
-    console.log('loaded');
-    return inbox.sort();
+    console.log('main frame loaded');
+    $(window).trigger('hashchange');
+    if (window.location.hash.match(/inbox/)) {
+      return inbox.sort();
+    }
   });
 
-  $(function() {
-    return $(window).trigger('hashchange');
-  });
+  $(function() {});
 
 }).call(this);

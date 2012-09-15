@@ -15,17 +15,17 @@
       "matches": ["*://mail.google.com/*"]
     , "css": ["app.css"]
     , "js": [
-        "lib/js/require.js"
-      , "lib/js/jquery.min.js"
+        "lib/js/jquery.min.js"
       , "lib/js/lodash.min.js"
       , "app.js"
       ]
     }
   ]
-  /*
 , "permissions": [
     "https://mail.google.com/"
   , "http://value.herokuapp.com/"
   ]
-  */
+, "web_accessible_resources": [
+    "app.css"
+  ]
 }

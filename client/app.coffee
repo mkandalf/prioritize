@@ -11,16 +11,26 @@ window.addEventListener 'hashchange', ->
 # the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 
+linkCSS = ($frame) ->
+  console.log $frame.contents().find('head')
+  console.log chrome.extension.getURL('app.css')
+  $frame.contents().find('head').append $('<link/>',
+    rel: 'stylesheet'
+    type: 'text/css'
+    href: chrome.extension.getURL('app.css')
+  )
+
 # all kinds of payment stuffs
 payment =
   renderButton: ->
+    $frame = $(MAIN_FRAME_SELECTOR)
+    linkCSS($frame)
 
-    # $actions = $('#:di')
-    $actions = $(MAIN_FRAME_SELECTOR).contents()
-                                     .find('div[role=navigation]')
-                                     .last().children().first()
+    $actions = $frame.contents().find('div[role=navigation]').last()
+                     .children().first()
 
     # append '$' in compose view after email actions
+    # TODO: replace with handlebars template
     $actions.append('<div id="payment-button">$</div>')
             .children('span').remove()
 
@@ -45,10 +55,12 @@ inbox =
     console.log emails
 
 $(MAIN_FRAME_SELECTOR).load ->
-  console.log 'loaded'
-  inbox.sort()
+  console.log 'main frame loaded'
+  $(window).trigger 'hashchange'
+
+  if window.location.hash.match /inbox/
+    inbox.sort()
 
 # DOM ready
 $ ->
-  $(window).trigger 'hashchange'
 
