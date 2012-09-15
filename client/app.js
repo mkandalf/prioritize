@@ -51,27 +51,81 @@
   };
 
   inbox = {
+    fakes: [],
+    emails: [],
     sort: function() {
-      var $emails, emails;
-      $emails = $(MAIN_FRAME_SELECTOR).contents().find('table > colgroup').eq(1).parent().find('tr');
-      emails = _(emails).map(function(email, i) {
-        var subject, value;
-        subject = email.find('td[role=link] div > span:first-child').text();
-        value = subject.match(PAYMENT_FIELD_REGEX);
-        if (value != null) {
-          value = parseFloat(value[0][{
-            1: -2
-          }]);
-        } else {
-          value = 0;
-        }
-        return {
-          subject: subject,
-          value: value,
-          index: i
+      var build_fakes, canonical_table, get_emails, sort_emails, toggle_fakes;
+      canonical_table = $(MAIN_FRAME_SELECTOR).contents().find('table > colgroup').eq(1).parent();
+      get_emails = function() {
+        var $emails;
+        $emails = canonical_table.find('tr');
+        return _this.emails = _.map($emails, function(email, i) {
+          var subject, value;
+          subject = ($(email)).find('td[role=link] div > span:first-child').text();
+          value = subject.match(PAYMENT_FIELD_REGEX);
+          if (value != null) {
+            value = parseFloat(value[0].slice(1, -1));
+          } else {
+            value = 0;
+          }
+          return {
+            node: $(email),
+            subject: subject,
+            value: value,
+            index: i,
+            dest: -1,
+            fake: null
+          };
+        });
+      };
+      build_fakes = function() {
+        var get_table;
+        get_table = function() {
+          return canonical_table.clone().find('tbody').empty().parent().css('position', 'absolute');
         };
-      });
-      return console.log(emails);
+        return _this.fakes = _(_this.emails).map(function(email) {
+          var fake;
+          fake = get_table().find('tbody').append(email['node'].clone()).parent();
+          fake.css('top', "" + email.node[0].offsetTop + "px").addClass('fake-email');
+          email['fake'] = fake;
+          return fake;
+        });
+      };
+      toggle_fakes = function() {
+        var email, fake, _i, _j, _len, _len1, _ref, _ref1, _results;
+        _ref = _this.emails;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          email = _ref[_i];
+          email.node.css('visibility', 'hidden');
+        }
+        _ref1 = _this.fakes;
+        _results = [];
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          fake = _ref1[_j];
+          _results.push(canonical_table.after(fake));
+        }
+        return _results;
+      };
+      sort_emails = function() {
+        var sorted_emails, sorted_value_emails, value_emails;
+        value_emails = _(_this.emails).filter(function(email) {
+          return email.value > 0;
+        });
+        sorted_value_emails = _(value_emails).sortBy(function(email) {
+          return -1 * value;
+        });
+        sorted_emails = sorted_value_emails.concat(_(_this.emails).without(sorted_value_emails));
+        return _(sorted_emails).each(function(email, idx) {
+          return email.index = idx;
+        });
+      };
+      console.log('getting emails');
+      get_emails();
+      console.log('building dummies');
+      build_fakes();
+      console.log('toggling dummies');
+      toggle_fakes();
+      return console.log('sorting');
     }
   };
 
