@@ -9,7 +9,7 @@ window.addEventListener 'hashchange', ->
 
 # the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
-PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/
+PAYMENT_FIELD_REGEX = /^\[\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\]/
 
 template = (domId) ->
   _.template ($("##{domId}").html() || "").trim()
@@ -34,10 +34,13 @@ payment =
     # append '$' in compose view after email actions
     # TODO: replace with handlebars template
     $actions.children().last().before(
-      '<div id="payment-button">$<input type="text" name="pay_amount" /></div>')
+      '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>')
 
-    $actions.find('#payment-button').on 'click', (e) ->
+    $paymentButton = $actions.find('#payment-button')
+    $paymentButton.click (e) ->
       $(this).find('input').focus()
+    $paymentButton.find('input').blur payment.paymentFieldHandler
+
 
   hasCreatedPayment: false
 
@@ -47,11 +50,11 @@ payment =
 
     $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]')
 
-    if hasCreatedPayment
-      $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "$#{amount}$"))
+    if payment.hasCreatedPayment
+      $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "[$#{amount}]"))
     else
-      hasCreatedPayment = true
-      $subject.val "$#{amount}$ #{$subject.val()}"
+      payment.hasCreatedPayment = true
+      $subject.val "[$#{amount}] #{$subject.val()}"
 
 
 inbox =
