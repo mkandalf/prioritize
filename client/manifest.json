@@ -7,6 +7,9 @@
 , "browser_action": { 
     "default_title": "Value for Gmail"
   }
+, "background": {
+      "scripts": ["background.js"]
+    }
 , "content_scripts": [
     {
       "matches": ["*://mail.google.com/*"]
