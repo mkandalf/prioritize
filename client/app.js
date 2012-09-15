@@ -37,7 +37,9 @@
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
       $actions.children('span').remove();
       $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
-      return $actions.find('#payment-button').on('blur', _this.paymentFieldHandler);
+      return $actions.find('#payment-button').on('click', function(e) {
+        return $(this).find('input').focus();
+      });
     },
     hasCreatedPayment: false,
     paymentFieldHandler: function(e) {
@@ -151,6 +153,8 @@
     }
   });
 
-  $(function() {});
+  $(function() {
+    return $;
+  });
 
 }).call(this);
