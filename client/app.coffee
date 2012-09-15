@@ -37,6 +37,7 @@ payment =
       '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>')
 
     $paymentButton = $actions.find('#payment-button')
+    # HACK: payment field isn't focusing on click by default.
     $paymentButton.click (e) ->
       $(this).find('input').focus()
     $paymentButton.find('input').blur payment.paymentFieldHandler
@@ -49,8 +50,11 @@ payment =
     console.log amount
 
     $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]')
-
-    if payment.hasCreatedPayment
+    if ((amount * 1) == 0) # Coerce to a number
+      # Clear the subj amount if The field is empty or a zero value
+      $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "").trim())
+      payment.hasCreatedPayment = false
+    else if payment.hasCreatedPayment
       $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "[$#{amount}]"))
     else
       payment.hasCreatedPayment = true

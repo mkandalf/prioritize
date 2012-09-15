@@ -49,7 +49,10 @@
       amount = $(e.currentTarget).val();
       console.log(amount);
       $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]');
-      if (payment.hasCreatedPayment) {
+      if ((amount * 1) === 0) {
+        $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "").trim());
+        return payment.hasCreatedPayment = false;
+      } else if (payment.hasCreatedPayment) {
         return $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "[$" + amount + "]"));
       } else {
         payment.hasCreatedPayment = true;
