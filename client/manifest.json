@@ -26,6 +26,6 @@
   , "http://value.herokuapp.com/"
   ]
 , "web_accessible_resources": [
-    "app.css"
+    "gmail_canvas.css"
   ]
 }

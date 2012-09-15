@@ -4,7 +4,6 @@ console.log('Value for Gmail extension script loaded')
 
 # check when 'compose' view is loaded
 window.addEventListener 'hashchange', ->
-  console.log window.location.hash
   if window.location.hash.match /compose/
     payment.renderButton()
 
@@ -12,12 +11,10 @@ window.addEventListener 'hashchange', ->
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 
 linkCSS = ($frame) ->
-  console.log $frame.contents().find('head')
-  console.log chrome.extension.getURL('app.css')
   $frame.contents().find('head').append $('<link/>',
     rel: 'stylesheet'
     type: 'text/css'
-    href: chrome.extension.getURL('app.css')
+    href: chrome.extension.getURL('gmail_canvas.css')
   )
 
 # all kinds of payment stuffs
@@ -29,10 +26,11 @@ payment =
     $actions = $frame.contents().find('div[role=navigation]').last()
                      .children().first()
 
+    $actions.children('span').remove()
     # append '$' in compose view after email actions
     # TODO: replace with handlebars template
-    $actions.append('<div id="payment-button">$</div>')
-            .children('span').remove()
+    $actions.children().last().before(
+      '<div id="payment-button">$<input type="text" name="pay_amount" /></div>')
 
 inbox =
   sort: ->
@@ -56,10 +54,11 @@ inbox =
 
 $(MAIN_FRAME_SELECTOR).load ->
   console.log 'main frame loaded'
-  $(window).trigger 'hashchange'
 
   if window.location.hash.match /inbox/
     inbox.sort()
+  else if window.location.hash.match /compose/
+    payment.renderButton()
 
 # DOM ready
 $ ->

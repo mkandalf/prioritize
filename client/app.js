@@ -7,7 +7,6 @@
   console.log('Value for Gmail extension script loaded');
 
   window.addEventListener('hashchange', function() {
-    console.log(window.location.hash);
     if (window.location.hash.match(/compose/)) {
       return payment.renderButton();
     }
@@ -16,12 +15,10 @@
   MAIN_FRAME_SELECTOR = '#canvas_frame';
 
   linkCSS = function($frame) {
-    console.log($frame.contents().find('head'));
-    console.log(chrome.extension.getURL('app.css'));
     return $frame.contents().find('head').append($('<link/>', {
       rel: 'stylesheet',
       type: 'text/css',
-      href: chrome.extension.getURL('app.css')
+      href: chrome.extension.getURL('gmail_canvas.css')
     }));
   };
 
@@ -31,7 +28,8 @@
       $frame = $(MAIN_FRAME_SELECTOR);
       linkCSS($frame);
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
-      return $actions.append('<div id="payment-button">$</div>').children('span').remove();
+      $actions.children('span').remove();
+      return $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
     }
   };
 
@@ -62,9 +60,10 @@
 
   $(MAIN_FRAME_SELECTOR).load(function() {
     console.log('main frame loaded');
-    $(window).trigger('hashchange');
     if (window.location.hash.match(/inbox/)) {
       return inbox.sort();
+    } else if (window.location.hash.match(/compose/)) {
+      return payment.renderButton();
     }
   });
 
