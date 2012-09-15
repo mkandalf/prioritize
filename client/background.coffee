@@ -1,7 +1,8 @@
 
 
 onInstall = ->
-    alert "Extension Installed"
+    chrome.tabs.getSelected (tab) ->
+        chrome.tabs.update tab.id, {'url': "http://mail.google.com"}
     null
 
 

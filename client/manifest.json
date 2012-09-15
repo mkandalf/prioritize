@@ -22,7 +22,8 @@
     }
   ]
 , "permissions": [
-    "https://mail.google.com/"
+    "tabs"
+  , "https://mail.google.com/"
   , "http://value.herokuapp.com/"
   ]
 , "web_accessible_resources": [
