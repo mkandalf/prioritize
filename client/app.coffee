@@ -11,6 +11,9 @@ window.addEventListener 'hashchange', ->
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/
 
+template = (domId) ->
+  _.template ($("##{domId}").html() || "").trim()
+
 linkCSS = ($frame) ->
   $frame.contents().find('head').append $('<link/>',
     rel: 'stylesheet'
@@ -108,6 +111,13 @@ inbox =
     console.log 'toggling dummies'
     toggle_fakes()
     console.log 'sorting'
+
+modal =
+  welcome: ->
+    modal = template 'welcome'
+    $('body').append(modal)
+    $modal = $('#welcome-modal')
+
   
 $(MAIN_FRAME_SELECTOR).load ->
   console.log 'main frame loaded'

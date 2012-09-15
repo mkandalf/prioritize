@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, inbox, linkCSS, payment,
+  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, inbox, linkCSS, modal, payment, template,
     _this = this;
 
   console.log('Value for Gmail extension script loaded');
@@ -16,6 +16,10 @@
   MAIN_FRAME_SELECTOR = '#canvas_frame';
 
   PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/;
+
+  template = function(domId) {
+    return _.template(($("#" + domId).html() || "").trim());
+  };
 
   linkCSS = function($frame) {
     return $frame.contents().find('head').append($('<link/>', {
@@ -126,6 +130,15 @@
       console.log('toggling dummies');
       toggle_fakes();
       return console.log('sorting');
+    }
+  };
+
+  modal = {
+    welcome: function() {
+      var $modal;
+      modal = template('welcome');
+      $('body').append(modal);
+      return $modal = $('#welcome-modal');
     }
   };
 
