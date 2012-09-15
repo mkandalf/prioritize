@@ -1,21 +1,28 @@
 {
-  "name": "Value for Gmail",
-  "version": "1.0",
-  "manifest_version": 1,
-  "description": "Add value to your Gmail inbox with paid email messages.",
-  "icons": { "128": "icon.png" },
-  "browser_action": { 
+  "name": "Value for Gmail"
+, "version": "1.0"
+, "manifest_version": 2
+, "description": "Add value to your Gmail inbox with paid email messages."
+, "icons": { "128": "icon.png" }
+, "browser_action": { 
     "default_title": "Value for Gmail"
-  },
-  "content_scripts": [
+  }
+, "content_scripts": [
     {
-      "matches": ["*://mail.google.com/"],
-      "css": ["styles.css"],
-      "js": ["client.js"]
+      "matches": ["*://mail.google.com/*"]
+    , "css": ["app.css"]
+    , "js": [
+        "lib/js/require.js"
+      , "lib/js/jquery.min.js"
+      , "lib/js/lodash.min.js"
+      , "app.js"
+      ]
     }
-  ],
-  "permissions": [
-    "http://www.gmail.com/",
-    "http://value.herokuapp.com/",
   ]
+  /*
+, "permissions": [
+    "https://mail.google.com/"
+  , "http://value.herokuapp.com/"
+  ]
+  */
 }

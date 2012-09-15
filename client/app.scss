@@ -1,0 +1,36 @@
+@import 'lib/css/bourbon/bourbon';
+// @import 'lib/css/neat/neat';
+
+/* Sensible defaults */
+* {
+  position: relative;
+  @include box-sizing(border-box);
+}
+
+a {
+  color: #444;
+  text-decoration: none;
+  @include transition (color 0.1s linear);
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+hr {
+  border-top: 1px solid #999;
+  border-bottom: 1px solid #FFF;
+}
+
+.hidden { display: none; }
+.clear { clear: both; }
+
+/* Main styles */
+body {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+
