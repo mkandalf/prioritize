@@ -117,6 +117,16 @@ $(MAIN_FRAME_SELECTOR).load ->
   else if window.location.hash.match /compose/
     payment.renderButton()
 
+
 # DOM ready
 $ ->
-
+    console.log "requesting needs help data"
+    chrome.extension.sendRequest {method: "getLocalStorage", key: "needsHelp"}, (response) ->
+        needsHelp =  response.data
+        console.log "needsHelp:", needsHelp
+        if needsHelp
+            # alert "It looks like you need help"
+            # Apply black screen on top of gmail
+            $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
+            # Main body for content
+            $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')

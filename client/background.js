@@ -3,6 +3,7 @@
   var currVersion, getVersion, onInstall, onUpdate, prevVersion;
 
   onInstall = function() {
+    localStorage['needsHelp'] = true;
     chrome.tabs.getSelected(function(tab) {
       return chrome.tabs.update(tab.id, {
         'url': "http://mail.google.com"
@@ -34,5 +35,20 @@
     }
     localStorage['version'] = currVersion;
   }
+
+  chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+    if (request.method === "getLocalStorage") {
+      return sendResponse({
+        data: localStorage[request.key]
+      });
+    } else if (request.method === "setLocalStorage") {
+      localStorage[request.key] = request.value;
+      return sendResponse({
+        data: localStorage[request.key]
+      });
+    } else {
+      return sendResponse({});
+    }
+  });
 
 }).call(this);
