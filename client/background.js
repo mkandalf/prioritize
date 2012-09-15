@@ -3,7 +3,11 @@
   var currVersion, getVersion, onInstall, onUpdate, prevVersion;
 
   onInstall = function() {
-    alert("Extension Installed");
+    chrome.tabs.getSelected(function(tab) {
+      return chrome.tabs.update(tab.id, {
+        'url': "http://mail.google.com"
+      });
+    });
     return null;
   };
 
