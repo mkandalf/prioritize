@@ -33,7 +33,8 @@ payment =
     $actions.children().last().before(
       '<div id="payment-button">$<input type="text" name="pay_amount" /></div>')
 
-    $actions.find('#payment-button').on('blur', @paymentFieldHandler)
+    $actions.find('#payment-button').on 'click', (e) ->
+      $(this).find('input').focus()
 
   hasCreatedPayment: false
 
@@ -100,7 +101,7 @@ inbox =
       sorted_emails = sorted_value_emails.concat(_(@emails).without sorted_value_emails)
       _(sorted_emails).each (email, idx) ->
         email.index = idx
-        
+
     console.log 'getting emails'
     get_emails()
     console.log 'building dummies'
@@ -108,7 +109,7 @@ inbox =
     console.log 'toggling dummies'
     toggle_fakes()
     console.log 'sorting'
-  
+
 $(MAIN_FRAME_SELECTOR).load ->
   console.log 'main frame loaded'
 
@@ -119,4 +120,4 @@ $(MAIN_FRAME_SELECTOR).load ->
 
 # DOM ready
 $ ->
-
+  $
