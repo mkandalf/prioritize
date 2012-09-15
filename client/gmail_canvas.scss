@@ -1,5 +1,7 @@
 @import 'lib/css/bourbon/bourbon';
 
+
+
 #payment-button {
   @include linear-gradient(#F5F5F5, #F1F1F1);
   @include border-radius(3px);
@@ -33,9 +35,11 @@
 }
 
 /* Table magic */
-#canvas_frame {
-  .email_row {
-    position: absolute;
-    width: 100%;
-  }
+.fake-email {
+  position: absolute;
+  -webkit-transition: top 1.75s ease-in-out;
+  -moz-transition: top 1.75s ease-in-out;
+  -ms-transition: top 1.75s ease-in-out;
+  -o-transition: top 1.75s ease-in-out;
+  transition: top 1.75s ease-in-out;
 }

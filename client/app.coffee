@@ -16,7 +16,8 @@ linkCSS = ($frame) ->
     rel: 'stylesheet'
     type: 'text/css'
     href: chrome.extension.getURL('gmail_canvas.css')
-  )
+  ).load ->
+    console.log 'loaded css'
 
 # all kinds of payment stuffs
 payment =
@@ -55,7 +56,7 @@ inbox =
   emails: []
   sort: =>
     canonical_table = $(MAIN_FRAME_SELECTOR).contents()
-                                            .find('table > colgroup').eq(1)
+                                            .find('table > colgroup').eq(0)
                                             .parent()
     get_emails = =>
       $emails = canonical_table.find 'tr'
@@ -96,10 +97,24 @@ inbox =
       value_emails = _(@emails).filter (email) ->
         email.value > 0
       sorted_value_emails = _(value_emails).sortBy (email) ->
-        -1 * value
-      sorted_emails = sorted_value_emails.concat(_(@emails).without sorted_value_emails)
+        -1 * email.value
+      sorted_emails = sorted_value_emails.concat(_(@emails).difference sorted_value_emails)
       _(sorted_emails).each (email, idx) ->
-        email.index = idx
+        email.dest = idx
+    
+    animate_emails = =>
+      console.log @emails[0].node.css 'transition'
+      targets = _(@emails).pluck('node').map (node) ->
+        node[0].offsetTop
+      for email in @emails
+        email.fake.css 'top', "#{targets[email.dest]}px"
+
+    hide_fakes = =>
+      for email in @emails
+        email.node.css 'visibility', 'visible'
+      for fake in @fakes
+        fake.remove()
+
         
     console.log 'getting emails'
     get_emails()
@@ -108,13 +123,27 @@ inbox =
     console.log 'toggling dummies'
     toggle_fakes()
     console.log 'sorting'
+    sort_emails()
+    setTimeout animate_emails, 1000
+    #animate_emails()
+    #hide_fakes()
   
+done_loading = ->
+  $(document.body).find('#loading').css('display') == 'none'
+
+timer = setInterval (->
+  if done_loading()
+    inbox.sort()
+    clearInterval timer)
+  , 50
+
 $(MAIN_FRAME_SELECTOR).load ->
+  $frame = $(MAIN_FRAME_SELECTOR)
+  linkCSS($frame)
+
   console.log 'main frame loaded'
 
-  if window.location.hash.match /inbox/
-    inbox.sort()
-  else if window.location.hash.match /compose/
+  if window.location.hash.match /compose/
     payment.renderButton()
 
 # DOM ready

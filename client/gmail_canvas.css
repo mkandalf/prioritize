@@ -38,6 +38,10 @@
       border-color: rgba(0, 0, 0, 0.3); }
 
 /* Table magic */
-#canvas_frame .email_row {
+.fake-email {
   position: absolute;
-  width: 100%; }
+  -webkit-transition: top 1.75s ease-in-out;
+  -moz-transition: top 1.75s ease-in-out;
+  -ms-transition: top 1.75s ease-in-out;
+  -o-transition: top 1.75s ease-in-out;
+  transition: top 1.75s ease-in-out; }
