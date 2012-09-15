@@ -1,5 +1,4 @@
 @import 'lib/css/bourbon/bourbon';
-// @import 'lib/css/neat/neat';
 
 /* Sensible defaults */
 * {
@@ -31,6 +30,14 @@ hr {
 body {
   font-size: 18px;
   line-height: 24px;
+}
+
+/* Table magic */
+#canvas_frame {
+  .email_row {
+    position: absolute;
+    width: 100%;
+  }
 }
 
 

@@ -2,13 +2,12 @@
 (function() {
   'use strict';
 
-  var MAIN_FRAME_SELECTOR, inbox, payment,
+  var MAIN_FRAME_SELECTOR, inbox, linkCSS, payment,
     _this = this;
 
-  console.log('extension script loaded with jquery and underscore');
+  console.log('Value for Gmail extension script loaded');
 
   window.addEventListener('hashchange', function() {
-    console.log(window.location.hash);
     if (window.location.hash.match(/compose/)) {
       return payment.renderButton();
     }
@@ -16,11 +15,22 @@
 
   MAIN_FRAME_SELECTOR = '#canvas_frame';
 
+  linkCSS = function($frame) {
+    return $frame.contents().find('head').append($('<link/>', {
+      rel: 'stylesheet',
+      type: 'text/css',
+      href: chrome.extension.getURL('gmail_canvas.css')
+    }));
+  };
+
   payment = {
     renderButton: function() {
-      var $actions;
-      $actions = $(MAIN_FRAME_SELECTOR).contents().find('div[role=navigation]').last().children().first();
-      return $actions.append('<div class="J-J5-Ji">$</div>').children('span').remove();
+      var $actions, $frame;
+      $frame = $(MAIN_FRAME_SELECTOR);
+      linkCSS($frame);
+      $actions = $frame.contents().find('div[role=navigation]').last().children().first();
+      $actions.children('span').remove();
+      return $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
     }
   };
 
@@ -104,12 +114,14 @@
   };
 
   $(MAIN_FRAME_SELECTOR).load(function() {
-    console.log('Inbox Loaded (Value)');
-    return inbox.sort();
+    console.log('main frame loaded');
+    if (window.location.hash.match(/inbox/)) {
+      return inbox.sort();
+    } else if (window.location.hash.match(/compose/)) {
+      return payment.renderButton();
+    }
   });
 
-  $(function() {
-    return $(window).trigger('hashchange');
-  });
+  $(function() {});
 
 }).call(this);

@@ -7,22 +7,25 @@
 , "browser_action": { 
     "default_title": "Value for Gmail"
   }
+, "background": {
+      "scripts": ["background.js"]
+    }
 , "content_scripts": [
     {
       "matches": ["*://mail.google.com/*"]
     , "css": ["app.css"]
     , "js": [
-        "lib/js/require.js"
-      , "lib/js/jquery.min.js"
+        "lib/js/jquery.min.js"
       , "lib/js/lodash.min.js"
       , "app.js"
       ]
     }
   ]
-  /*
 , "permissions": [
     "https://mail.google.com/"
   , "http://value.herokuapp.com/"
   ]
-  */
+, "web_accessible_resources": [
+    "gmail_canvas.css"
+  ]
 }

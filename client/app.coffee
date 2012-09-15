@@ -1,26 +1,36 @@
 'use strict'
 
-console.log 'extension script loaded with jquery and underscore'
+console.log('Value for Gmail extension script loaded')
 
 # check when 'compose' view is loaded
 window.addEventListener 'hashchange', ->
-  console.log window.location.hash
   if window.location.hash.match /compose/
     payment.renderButton()
 
+# the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
+
+linkCSS = ($frame) ->
+  $frame.contents().find('head').append $('<link/>',
+    rel: 'stylesheet'
+    type: 'text/css'
+    href: chrome.extension.getURL('gmail_canvas.css')
+  )
 
 # all kinds of payment stuffs
 payment =
   renderButton: ->
+    $frame = $(MAIN_FRAME_SELECTOR)
+    linkCSS($frame)
 
-    # $actions = $('#:di')
-    $actions = $(MAIN_FRAME_SELECTOR).contents()
-                                     .find('div[role=navigation]')
-                                     .last().children().first()
+    $actions = $frame.contents().find('div[role=navigation]').last()
+                     .children().first()
 
+    $actions.children('span').remove()
     # append '$' in compose view after email actions
-    $actions.append('<div class="J-J5-Ji">$</div>').children('span').remove()
+    # TODO: replace with handlebars template
+    $actions.children().last().before(
+      '<div id="payment-button">$<input type="text" name="pay_amount" /></div>')
 
 inbox =
   fakes: []
@@ -79,11 +89,14 @@ inbox =
     toggle_fakes()
     console.log 'sorting'
   
-
 $(MAIN_FRAME_SELECTOR).load ->
-  console.log 'Inbox Loaded (Value)'
-  inbox.sort()
+  console.log 'main frame loaded'
+
+  if window.location.hash.match /inbox/
+    inbox.sort()
+  else if window.location.hash.match /compose/
+    payment.renderButton()
 
 # DOM ready
 $ ->
-  $(window).trigger 'hashchange'
+
