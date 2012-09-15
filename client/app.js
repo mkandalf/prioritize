@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, done_loading, inbox, linkCSS, payment, timer,
+  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, done_loading, inbox, linkCSS, modal, payment, template, timer,
     _this = this;
 
   console.log('Value for Gmail extension script loaded');
@@ -16,6 +16,10 @@
   MAIN_FRAME_SELECTOR = '#canvas_frame';
 
   PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/;
+
+  template = function(domId) {
+    return _.template(($("#" + domId).html() || "").trim());
+  };
 
   linkCSS = function($frame) {
     return $frame.contents().find('head').append($('<link/>', {
@@ -35,7 +39,9 @@
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
       $actions.children('span').remove();
       $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
-      return $actions.find('#payment-button').on('blur', _this.paymentFieldHandler);
+      return $actions.find('#payment-button').on('click', function(e) {
+        return $(this).find('input').focus();
+      });
     },
     hasCreatedPayment: false,
     paymentFieldHandler: function(e) {
@@ -56,7 +62,7 @@
     fakes: [],
     emails: [],
     sort: function() {
-      var animate_emails, build_fakes, canonical_table, get_emails, hide_fakes, sort_emails, toggle_fakes;
+      var animate_emails, build_fakes, canonical_table, get_emails, hide_fakes, move_emails, sort_emails, toggle_fakes;
       canonical_table = $(MAIN_FRAME_SELECTOR).contents().find('table > colgroup').eq(0).parent();
       get_emails = function() {
         var $emails;
@@ -150,6 +156,22 @@
         }
         return _results;
       };
+      move_emails = function() {
+        var email, last_email, _i, _len, _ref, _results;
+        last_email = null;
+        _ref = _this.emails;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          email = _ref[_i];
+          if (!(last_email != null)) {
+            canonical_table.prepend(email.node);
+          } else {
+            last_email.after(email.node);
+          }
+          _results.push(last_email = email.node);
+        }
+        return _results;
+      };
       console.log('getting emails');
       get_emails();
       console.log('building dummies');
@@ -158,7 +180,18 @@
       toggle_fakes();
       console.log('sorting');
       sort_emails();
-      return setTimeout(animate_emails, 1000);
+      move_emails();
+      setTimeout(animate_emails, 1000);
+      return setTimeout(hide_fakes, 1650);
+    }
+  };
+
+  modal = {
+    welcome: function() {
+      var $modal;
+      modal = template('welcome');
+      $('body').append(modal);
+      return $modal = $('#welcome-modal');
     }
   };
 
@@ -183,6 +216,20 @@
     }
   });
 
-  $(function() {});
+  $(function() {
+    console.log("requesting needs help data");
+    return chrome.extension.sendRequest({
+      method: "getLocalStorage",
+      key: "needsHelp"
+    }, function(response) {
+      var needsHelp;
+      needsHelp = response.data;
+      console.log("needsHelp:", needsHelp);
+      if (needsHelp) {
+        $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>');
+        return $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
+      }
+    });
+  });
 
 }).call(this);

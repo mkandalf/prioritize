@@ -11,6 +11,9 @@ window.addEventListener 'hashchange', ->
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/
 
+template = (domId) ->
+  _.template ($("##{domId}").html() || "").trim()
+
 linkCSS = ($frame) ->
   $frame.contents().find('head').append $('<link/>',
     rel: 'stylesheet'
@@ -34,7 +37,8 @@ payment =
     $actions.children().last().before(
       '<div id="payment-button">$<input type="text" name="pay_amount" /></div>')
 
-    $actions.find('#payment-button').on('blur', @paymentFieldHandler)
+    $actions.find('#payment-button').on 'click', (e) ->
+      $(this).find('input').focus()
 
   hasCreatedPayment: false
 
@@ -114,8 +118,18 @@ inbox =
         email.node.css 'visibility', 'visible'
       for fake in @fakes
         fake.remove()
-
+    
+    move_emails = =>
+      last_email = null
+      for email in @emails
+        if not last_email?
+          canonical_table.prepend email.node
+        else
+          last_email.after email.node
+        last_email = email.node
         
+    
+
     console.log 'getting emails'
     get_emails()
     console.log 'building dummies'
@@ -124,10 +138,18 @@ inbox =
     toggle_fakes()
     console.log 'sorting'
     sort_emails()
+    move_emails()
     setTimeout animate_emails, 1000
+    setTimeout hide_fakes, 1650
     #animate_emails()
     #hide_fakes()
-  
+
+modal =
+  welcome: ->
+    modal = template 'welcome'
+    $('body').append(modal)
+    $modal = $('#welcome-modal')
+
 done_loading = ->
   $(document.body).find('#loading').css('display') == 'none'
 
@@ -146,6 +168,16 @@ $(MAIN_FRAME_SELECTOR).load ->
   if window.location.hash.match /compose/
     payment.renderButton()
 
+
 # DOM ready
 $ ->
-
+    console.log "requesting needs help data"
+    chrome.extension.sendRequest {method: "getLocalStorage", key: "needsHelp"}, (response) ->
+        needsHelp =  response.data
+        console.log "needsHelp:", needsHelp
+        if needsHelp
+            # alert "It looks like you need help"
+            # Apply black screen on top of gmail
+            $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
+            # Main body for content
+            $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')

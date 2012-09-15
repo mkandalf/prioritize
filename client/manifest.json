@@ -8,7 +8,7 @@
     "default_title": "Value for Gmail"
   }
 , "background": {
-      "scripts": ["background.js"]
+    "pages": ["templates/signin.html"]
     }
 , "content_scripts": [
     {
@@ -22,7 +22,8 @@
     }
   ]
 , "permissions": [
-    "https://mail.google.com/"
+    "tabs"
+  , "https://mail.google.com/"
   , "http://value.herokuapp.com/"
   ]
 , "web_accessible_resources": [
