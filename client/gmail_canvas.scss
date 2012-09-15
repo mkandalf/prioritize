@@ -14,6 +14,7 @@
   line-height: 27px;
   padding: 0 0 0 8px;
   display: inline-block;
+  position: relative;
 
   input {
     float: right;
@@ -21,7 +22,13 @@
     margin: -1px -1px 0 5px;
     padding: 6px 6px 7px 6px;
     border: 1px solid rgba(0,0,0,0.1);
+    outline: none;
     @include border-radius(3px);
+    @include transition(border-color 0.1s linear);
+
+    &:focus {
+      border-color: rgba(0,0,0,0.3);
+    }
   }
 }
 
