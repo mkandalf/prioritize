@@ -18,15 +18,24 @@
   height: 27px;
   line-height: 27px;
   padding: 0 0 0 8px;
-  display: inline-block; }
+  display: inline-block;
+  position: relative; }
   #payment-button input {
     float: right;
     width: 30px;
     margin: -1px -1px 0 5px;
     padding: 6px 6px 7px 6px;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    outline: none;
     -webkit-border-radius: 3px;
-    border-radius: 3px; }
+    border-radius: 3px;
+    -webkit-transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false);
+    -moz-transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false);
+    -ms-transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false);
+    -o-transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false);
+    transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false); }
+    #payment-button input:focus {
+      border-color: rgba(0, 0, 0, 0.3); }
 
 /* Table magic */
 #canvas_frame .email_row {

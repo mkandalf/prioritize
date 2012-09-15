@@ -2,7 +2,8 @@
 (function() {
   'use strict';
 
-  var MAIN_FRAME_SELECTOR, inbox, linkCSS, payment;
+  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, inbox, linkCSS, payment,
+    _this = this;
 
   console.log('Value for Gmail extension script loaded');
 
@@ -13,6 +14,8 @@
   });
 
   MAIN_FRAME_SELECTOR = '#canvas_frame';
+
+  PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/;
 
   linkCSS = function($frame) {
     return $frame.contents().find('head').append($('<link/>', {
@@ -29,7 +32,21 @@
       linkCSS($frame);
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
       $actions.children('span').remove();
-      return $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
+      $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
+      return $actions.find('#payment-button').on('blur', _this.paymentFieldHandler);
+    },
+    hasCreatedPayment: false,
+    paymentFieldHandler: function(e) {
+      var $subject, amount, hasCreatedPayment;
+      amount = $(e.currentTarget).val();
+      console.log(amount);
+      $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]');
+      if (hasCreatedPayment) {
+        return $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "$" + amount + "$"));
+      } else {
+        hasCreatedPayment = true;
+        return $subject.val("$" + amount + "$ " + ($subject.val()));
+      }
     }
   };
 
@@ -40,7 +57,7 @@
       emails = _(emails).map(function(email, i) {
         var subject, value;
         subject = email.find('td[role=link] div > span:first-child').text();
-        value = subject.match(/^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/);
+        value = subject.match(PAYMENT_FIELD_REGEX);
         if (value != null) {
           value = parseFloat(value[0][{
             1: -2
