@@ -2,6 +2,28 @@
 (function() {
   'use strict';
 
+  var payment;
+
   console.log('extension script loaded with jquery and underscore');
+
+  window.addEventListener('hashchange', function() {
+    console.log(window.location.hash);
+    if (window.location.hash.match(/compose/)) {
+      return payment.renderButton();
+    }
+  });
+
+  payment = {
+    renderButton: function() {
+      var $actions, MAIN_FRAME_SELECTOR;
+      MAIN_FRAME_SELECTOR = '#canvas_frame';
+      $actions = $(MAIN_FRAME_SELECTOR).contents().find('div[role=navigation]').last().children().first();
+      return $actions.append('<div class="J-J5-Ji">$</div>').children('span').remove();
+    }
+  };
+
+  $(function() {
+    return $(window).trigger('hashchange');
+  });
 
 }).call(this);
