@@ -11,6 +11,9 @@ window.addEventListener 'hashchange', ->
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/
 
+template = (domId) ->
+  _.template ($("##{domId}").html() || "").trim()
+
 linkCSS = ($frame) ->
   $frame.contents().find('head').append $('<link/>',
     rel: 'stylesheet'
@@ -33,7 +36,8 @@ payment =
     $actions.children().last().before(
       '<div id="payment-button">$<input type="text" name="pay_amount" /></div>')
 
-    $actions.find('#payment-button').on('blur', @paymentFieldHandler)
+    $actions.find('#payment-button').on 'click', (e) ->
+      $(this).find('input').focus()
 
   hasCreatedPayment: false
 
@@ -100,7 +104,7 @@ inbox =
       sorted_emails = sorted_value_emails.concat(_(@emails).without sorted_value_emails)
       _(sorted_emails).each (email, idx) ->
         email.index = idx
-        
+
     console.log 'getting emails'
     get_emails()
     console.log 'building dummies'
@@ -108,6 +112,13 @@ inbox =
     console.log 'toggling dummies'
     toggle_fakes()
     console.log 'sorting'
+
+modal =
+  welcome: ->
+    modal = template 'welcome'
+    $('body').append(modal)
+    $modal = $('#welcome-modal')
+
   
 $(MAIN_FRAME_SELECTOR).load ->
   console.log 'main frame loaded'

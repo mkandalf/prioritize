@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, inbox, linkCSS, payment,
+  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, inbox, linkCSS, modal, payment, template,
     _this = this;
 
   console.log('Value for Gmail extension script loaded');
@@ -16,6 +16,10 @@
   MAIN_FRAME_SELECTOR = '#canvas_frame';
 
   PAYMENT_FIELD_REGEX = /^\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\$/;
+
+  template = function(domId) {
+    return _.template(($("#" + domId).html() || "").trim());
+  };
 
   linkCSS = function($frame) {
     return $frame.contents().find('head').append($('<link/>', {
@@ -33,7 +37,9 @@
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
       $actions.children('span').remove();
       $actions.children().last().before('<div id="payment-button">$<input type="text" name="pay_amount" /></div>');
-      return $actions.find('#payment-button').on('blur', _this.paymentFieldHandler);
+      return $actions.find('#payment-button').on('click', function(e) {
+        return $(this).find('input').focus();
+      });
     },
     hasCreatedPayment: false,
     paymentFieldHandler: function(e) {
@@ -126,6 +132,15 @@
       console.log('toggling dummies');
       toggle_fakes();
       return console.log('sorting');
+    }
+  };
+
+  modal = {
+    welcome: function() {
+      var $modal;
+      modal = template('welcome');
+      $('body').append(modal);
+      return $modal = $('#welcome-modal');
     }
   };
 
