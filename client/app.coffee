@@ -225,14 +225,15 @@ $(MAIN_FRAME_SELECTOR).load ->
 # DOM ready
 $ ->
   console.log "requesting needs help data"
-  chrome.extension.sendRequest {
+  chrome.extension.sendMessage {
     method: "getLocalStorage"
   , key: "needsHelp"
   }, (response) ->
+    console.log response
     needsHelp = response.data
     console.log "needsHelp: #{needsHelp}"
     if needsHelp
-      # alert "It looks like you need help"
+      alert "It looks like you need help"
       # Apply black screen on top of gmail
       # TODO: swap these out for underscore templates
       $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
