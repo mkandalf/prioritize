@@ -232,17 +232,18 @@ $(MAIN_FRAME_SELECTOR).load ->
     email.read()
 
 
+DEBUG = true
+
+
 ## DOM ready
 $ ->
   console.log "requesting needs help data"
   chrome.extension.sendMessage {
     method: "getLocalStorage"
-  , key: "needsHelp"
+  , key: "seenHelp"
   }, (response) ->
-    console.log response
-    needsHelp = response.data
-    console.log "needsHelp: #{needsHelp}"
-    if needsHelp
+    seenHelp = response.data
+    if DEBUG or not seenHelp?
       # Apply black screen on top of gmail
       # TODO: swap these out for underscore templates
       $('body').append """
@@ -426,12 +427,19 @@ $ ->
                         </div>
                 
                     <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
-                    <a href="next.html">
-                        <button class="payments">Next</button>
+                    <a href="#">
+                        <button id="finish" class="payments">Next</button>
                     </a>
                 </div>
 
             </div>
           """
-
-
+          $('#finish').on 'click', ->
+              $('.black').hide()
+              $('.card').hide()
+              chrome.extension.sendMessage {
+                method: "setLocalStorage"
+              , key: "seenHelp"
+              , value: true
+              }, (response) ->
+                  null
