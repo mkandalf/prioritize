@@ -243,12 +243,12 @@
       toggle_fakes();
       console.log('sorting emails');
       sort_emails();
-      console.log('moving true emails');
-      move_emails();
       console.log('animating fakes');
-      setTimeout(animate_emails, 1000);
+      setTimeout(animate_emails, 1500);
+      console.log('moving true emails');
+      setTimeout(move_emails, 1600);
       console.log('hiding fakes');
-      return setTimeout(hide_fakes, 1650);
+      return setTimeout(hide_fakes, 3150);
     }
   };
 
