@@ -76,7 +76,7 @@ inbox =
         value = subject.match PAYMENT_FIELD_REGEX
         if value?
           # strip off leading and trailing $ signs
-          value = parseFloat value[0][1..-2]
+          value = parseFloat value[0][2..-2]
         else
           value = 0
         node: $ email
@@ -85,12 +85,14 @@ inbox =
         index: i
         dest: -1
         fake: null
+        replacement: null
 
     build_fakes = =>
+      canonical_table_barebones = canonical_table.clone()
+                                    .find('tbody').empty().parent()
+                                    .css('position', 'absolute')
       get_table = ->
-        canonical_table.clone()
-                        .find('tbody').empty().parent()
-                        .css('position', 'absolute')
+        canonical_table_barebones.clone()
 
       @fakes = _(@emails).map (email) =>
         fake = get_table().find('tbody').append(email['node'].clone()).parent()
@@ -128,12 +130,45 @@ inbox =
     
     move_emails = =>
       last_email = null
-      for email in @emails
+      for email in _(@emails).sortBy 'dest'
         if not last_email?
           canonical_table.prepend email.node
         else
           last_email.after email.node
         last_email = email.node
+
+        # We need to fix clicks, because google is stupid.
+        # First, set the replacement nodes so we can find them later to simulate
+        # clicks.
+        @emails[email.dest].replacement = email.node
+        # Then intercept and redirect the clicks
+        email.node.on 'mousedown', (e, real) ->
+          if real != "fo' real"
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            email.replacement.trigger 'mousedown', "fo' real"
+            false
+          else
+            true
+        email.node.on 'mouseup', (e, real) ->
+          if real != "fo' real"
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            email.replacement.trigger 'mouseup', "fo' real"
+            false
+          else
+            true
+        email.node.on 'click', (e, real) ->
+          if real != "fo' real"
+            e.preventDefault()
+            e.stopPropagation()
+            e.stopImmediatePropagation()
+            email.replacement.trigger 'click', "fo' real"
+            false
+          else
+            true
         
     
 
@@ -177,14 +212,14 @@ $(MAIN_FRAME_SELECTOR).load ->
 
 
 # DOM ready
-$ ->
-    console.log "requesting needs help data"
-    chrome.extension.sendRequest {method: "getLocalStorage", key: "needsHelp"}, (response) ->
-        needsHelp =  response.data
-        console.log "needsHelp:", needsHelp
-        if needsHelp
-            # alert "It looks like you need help"
-            # Apply black screen on top of gmail
-            $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
-            # Main body for content
-            $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
+#$ ->
+    #console.log "requesting needs help data"
+    #chrome.extension.sendRequest {method: "getLocalStorage", key: "needsHelp"}, (response) ->
+        #needsHelp =  response.data
+        #console.log "needsHelp:", needsHelp
+        #if needsHelp
+            ## alert "It looks like you need help"
+            ## Apply black screen on top of gmail
+            #$('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
+            ## Main body for content
+            #$('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')

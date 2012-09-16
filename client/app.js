@@ -77,7 +77,7 @@
           subject = ($(email)).find('td[role=link] div > span:first-child').text();
           value = subject.match(PAYMENT_FIELD_REGEX);
           if (value != null) {
-            value = parseFloat(value[0].slice(1, -1));
+            value = parseFloat(value[0].slice(2, -1));
           } else {
             value = 0;
           }
@@ -87,14 +87,16 @@
             value: value,
             index: i,
             dest: -1,
-            fake: null
+            fake: null,
+            replacement: null
           };
         });
       };
       build_fakes = function() {
-        var get_table;
+        var canonical_table_barebones, get_table;
+        canonical_table_barebones = canonical_table.clone().find('tbody').empty().parent().css('position', 'absolute');
         get_table = function() {
-          return canonical_table.clone().find('tbody').empty().parent().css('position', 'absolute');
+          return canonical_table_barebones.clone();
         };
         return _this.fakes = _(_this.emails).map(function(email) {
           var fake;
@@ -164,7 +166,7 @@
       move_emails = function() {
         var email, last_email, _i, _len, _ref, _results;
         last_email = null;
-        _ref = _this.emails;
+        _ref = _(_this.emails).sortBy('dest');
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           email = _ref[_i];
@@ -173,7 +175,41 @@
           } else {
             last_email.after(email.node);
           }
-          _results.push(last_email = email.node);
+          last_email = email.node;
+          _this.emails[email.dest].replacement = email.node;
+          email.node.on('mousedown', function(e, real) {
+            if (real !== "fo' real") {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              email.replacement.trigger('mousedown', "fo' real");
+              return false;
+            } else {
+              return true;
+            }
+          });
+          email.node.on('mouseup', function(e, real) {
+            if (real !== "fo' real") {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              email.replacement.trigger('mouseup', "fo' real");
+              return false;
+            } else {
+              return true;
+            }
+          });
+          _results.push(email.node.on('click', function(e, real) {
+            if (real !== "fo' real") {
+              e.preventDefault();
+              e.stopPropagation();
+              e.stopImmediatePropagation();
+              email.replacement.trigger('click', "fo' real");
+              return false;
+            } else {
+              return true;
+            }
+          }));
         }
         return _results;
       };
@@ -219,22 +255,6 @@
     if (window.location.hash.match(/compose/)) {
       return payment.renderButton();
     }
-  });
-
-  $(function() {
-    console.log("requesting needs help data");
-    return chrome.extension.sendRequest({
-      method: "getLocalStorage",
-      key: "needsHelp"
-    }, function(response) {
-      var needsHelp;
-      needsHelp = response.data;
-      console.log("needsHelp:", needsHelp);
-      if (needsHelp) {
-        $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>');
-        return $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
-      }
-    });
   });
 
 }).call(this);
