@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  var $loading, COMPOSE_PATH_REGEX, DEBUG, EMAIL_PATH_REGEX, MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, email, iframe, inbox, loadingTimer, modal, payment, renderInActionBar, renderValueLogo, template,
+  var $loading, COMPOSE_PATH_REGEX, DEBUG, EMAIL_PATH_REGEX, MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, email, iframe, inbox, loadingTimer, modal, onSignupComplete, payment, renderInActionBar, renderValueLogo, template,
     _this = this;
 
   console.log('Value for Gmail extension script loaded');
@@ -347,73 +347,81 @@
     }, function(response) {
       var seenHelp;
       seenHelp = response.data;
-      if (DEBUG || !(seenHelp != null)) {
-        $('body').append("<style type=\"text/css\">\nbody {\n      width: 100%;\n      height: 100%;\n      margin: 0px;\n      padding: 0px;\n      background-image: url('http://i.imgur.com/dYFOK.png');\n      background-repeat: no-repeat;\n      font-family:Arial, sans-serif;\n  }\n\n  .card {\n      background-image:url('http://i.imgur.com/4YvgN.png');\n      width:466px;\n      height:364px;\n      left: 50%;\n      margin-left: -233px;\n      position: absolute; top:50%; margin-top:-182px; z-index: 1002; }\n  .text {\n      padding:30px;\n      height:100%;\n      width:100%;\n      text-align:center;\n      width: 406px;\n      font-weight: bold;\n      font-size: 20px;\n      margin: auto\n  }\n\n  .black {\n      background-color: black;\n      opacity: .6;\n      z-index: 1001;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n      margin: 0px;\n      padding: 0px;\n      top: 0px;\n      left: 0px;\n  }\n\n  button {\n      background: #DD4B39;\n      border: 1px solid #EB4921;\n      width: 167px;\n      height: 28px;\n      border-radius: 4px;\n      margin: 0 auto;\n      margin-top:26px;\n      color: white;\n      font-family: \"arial\";\n      font-size: 9pt;\n      font-weight: bold;\n      font-style: normal;\n      text-align: center;\n      text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);\n      line-height: 13px;\n      z-index:200;\n      text-transform:uppercase;\n      padding-top: 6px;\n      cursor: pointer\n  }\n\n  button:hover {\n    background: #842d22;\n  }\n\n  .button a {\n      text-decoration: none;\n  }\n\n  .mini {\n      color:#626161;\n      font-size:7pt;\n      text-transform:uppercase;\n      text-align:left;\n      padding-bottom: 0px;\n      margin-bottom: 0px;\n  }\n\n  .two-line {\n    margin-top: 5px\n  }\n\n  .long {\n      width:286px;\n      float:left;\n  }\n\n  .short {\n      width:90px;\n      float:left;\n      padding-left:30px;\n\n  }\n\n  .bottomRow {\n      padding-top: 10px;\n  }\n  .bottom {\n      padding-left:4px;width:143px;\n  }\n\n  .bottom .mini {\n      width:30px;height:30px;float:left;text-align:right;padding-right:5px;\n  }\n\n  .short input {\n      float:left;width:90px;\n  }\n\n  .bottom input {\n      float:left;width:104px;\n  }\n\n  .form {\n      text-align:left;\n  }\n\n  input {\n      border-radius: 3px;\n      border-color: #CDCDCD;\n      border-width: 1px;\n      width: 100%;\n      height: 23px;\n      margin-top: 3px;\n      margin-bottom:14px;\n      box-shadow: 0px;\n      box-shadow: inset 2px 2px 2px 0px #DDD;\n      outline: none;\n  }\n\n  .payments {\n      width: 89px;\n      margin-left: 29px;\n      float: right;\n      margin: 0;\n  }\n</style>");
-        $('body').append('<div class="black"></div>');
-        $('body').append('<div class="card"></div>');
-        $('.card').html("<div class=\"text\">\n    <p>Your email is valuable.</p>\n    <img src=\"http://i.imgur.com/p1QBk.png\" style=\"padding-top: 10px;\">\n    <button id=\"install\">Install</button>\n</div>");
-        return $('#install').on('click', function() {
-          window.open('http://value.herokuapp.com/register');
-          $('.card').html("<div class=\"text\" style=\"width: 100%;\">\n      <p>Enter your payment information</p>\n      <div class=\"form\">\n          <p class=\"mini\">Your Name</p>\n          <input id=\"name\"></input>\n          <p class=\"mini\">Card Number</p>\n          <input id=\"card_number\"></input>\n\n          <div>\n          <div class=\"long\">\n              <p class=\"mini\">Billing Address</p>\n              <input id=\"street_address\"></input>\n          </div>\n          <div class=\"short\">\n              <p class=\"mini\">Zip</p>\n              <input id=\"postal_code\"></input>\n          </div>\n          <br style=\"clear:both;\">\n\n          </div>\n\n          <div class=\"bottomRow\">\n              <div style=\"padding-left:0px;\" class=\"short bottom\">\n                  <p class=\"mini\">Exp</p>\n                  <input id=\"expiration\"></input>\n              </div>\n\n              <div class=\"short bottom\">\n                  <p class=\"mini\">CVV</p>\n                  <input id=\"security_code\"></input>\n              </div>\n\n          <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n          <a href=\"#\">\n              <button id=\"finish\" class=\"payments\">Next</button>\n          </a>\n      </div>\n\n    <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n    <a href=\"#\">\n      <button id=\"finish\" class=\"payments\">Next</button>\n    </a>\n  </div>");
-          return $('#finish').on('click', function() {
-            var cardData, expiration_month, expiration_year, expires, marketplaceUri, _ref;
-            marketplaceUri = "/v1/marketplaces/TEST-MP1m5fOk5GfP8YOKLODBqFiW";
-            balanced.init(marketplaceUri);
-            expiration_month = null;
-            expiration_year = null;
-            expires = (_ref = $("#expiration").val()) != null ? _ref.split('/') : void 0;
-            if ((expires != null ? expires.length : void 0) === 2) {
-              expiration_month = expires != null ? expires[0] : void 0;
-              expiration_year = expires != null ? expires[1] : void 0;
-              if ((expiration_year != null ? expiration_year.length : void 0) === 2) {
-                expiration_year = "20" + expiration_year;
-              }
-            }
-            cardData = {
-              name: $("#name").val(),
-              card_number: $("#card_number").val(),
-              expiration_month: expiration_month,
-              expiration_year: expiration_year,
-              security_code: $("#security_code").val(),
-              street_address: $("#street_address").val(),
-              postal_code: $("#postal_code").val(),
-              country_code: "USA"
-            };
-            console.log(cardData);
-            return balanced.card.create(cardData, function(response) {
-              console.log("Got response!");
-              console.log(response.error);
-              console.log(response.status);
-              switch (response.status) {
-                case 200:
-                case 201:
-                  alert("OK!");
-                  $('.black').hide();
-                  $('.card').hide();
-                  return chrome.extension.sendMessage({
-                    method: "setLocalStorage",
-                    key: "seenHelp",
-                    value: true
-                  }, function(response) {
-                    return null;
-                  });
-                case 400:
-                  alert("missing field");
-                  console.log;
-                  return null;
-                case 402:
-                  alert("we couldn't authorize the buyer's credit card");
-                  return null;
-                case 404:
-                  return alert("marketplace uri is incorrect");
-                case 500:
-                  return alert("something bad happened please retry");
-              }
-            });
-          });
-        });
+      if (!(DEBUG || !(seenHelp != null))) {
+        return;
       }
+      $('body').append("<style type=\"text/css\">\nbody {\n      width: 100%;\n      height: 100%;\n      margin: 0px;\n      padding: 0px;\n      background-image: url('http://i.imgur.com/dYFOK.png');\n      background-repeat: no-repeat;\n      font-family:Arial, sans-serif;\n  }\n\n.card {\n    background-image:url('http://i.imgur.com/4YvgN.png');\n    width:466px;\n    height:364px;\n    left: 50%;\n    margin-left: -233px;\n    position: absolute; top:50%; margin-top:-182px; z-index: 1002; }\n.text {\n    padding:30px;\n    height:100%;\n    width:100%;\n    text-align:center;\n    width: 406px;\n    font-weight: bold;\n    font-size: 20px;\n    margin: auto\n}\n\n.black {\n    background-color: black;\n    opacity: .6;\n    z-index: 1001;\n    width: 100%;\n    height: 100%;\n    position: absolute;\n    margin: 0px;\n    padding: 0px;\n    top: 0px;\n    left: 0px;\n}\n\nbutton {\n    background: #DD4B39;\n    border: 1px solid #EB4921;\n    width: 167px;\n    height: 28px;\n    border-radius: 4px;\n    margin: 0 auto;\n    margin-top:26px;\n    color: white;\n    font-family: \"arial\";\n    font-size: 9pt;\n    font-weight: bold;\n    font-style: normal;\n    text-align: center;\n    text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);\n    line-height: 13px;\n    z-index:200;\n    text-transform:uppercase;\n    padding-top: 6px;\n    cursor: pointer\n}\n\nbutton:hover {\n  background: #842d22;\n}\n\n.button a {\n    text-decoration: none;\n}\n\n.mini {\n    color:#626161;\n    font-size:7pt;\n    text-transform:uppercase;\n    text-align:left;\n    padding-bottom: 0px;\n    margin-bottom: 0px;\n}\n\n.two-line {\n  margin-top: 5px\n}\n\n.long {\n    width:286px;\n    float:left;\n}\n\n.short {\n    width:90px;\n    float:left;\n    padding-left:30px;\n\n}\n\n.bottomRow {\n    padding-top: 10px;\n}\n.bottom {\n    padding-left:4px;width:143px;\n}\n\n.bottom .mini {\n    width:30px;height:30px;float:left;text-align:right;padding-right:5px;\n}\n\n.short input {\n    float:left;width:90px;\n}\n\n.bottom input {\n    float:left;width:104px;\n}\n\n.form {\n    text-align:left;\n}\n\ninput {\n    border-radius: 3px;\n    border: solid 1px #DDD;\n    width: 100%;\n    padding: 4px;\n    margin-bottom: 4px;\n    box-shadow: inset 0px 2px 5px 0px #DDD;\n    outline: none;\n    font-size: 14px;\n    color: #666;\n}\n\n.bottom .mini {\n  width: 23px;\n  margin-top: 2px;\n}\n.bottom { width: 143px; }\n.bottom .input { width: 116px; }\n\n.payments {\n    width: 89px;\n    margin-left: 29px;\n    float: right;\n    margin: 0;\n}\n\n#loading-gif { margin-bottom: -15px; }\n</style>");
+      $('body').append('<div class="black"></div>');
+      $('body').append('<div class="card"></div>');
+      $('.card').html("<div class=\"text\">\n    <p>Your email is valuable.</p>\n    <img src=\"http://i.imgur.com/p1QBk.png\" style=\"padding-top: 10px;\">\n    <button id=\"install\">Get Started</button>\n</div>");
+      return $('#install').on('click', function() {
+        window.open('http://value.herokuapp.com/register');
+        $('.card').html("<div class=\"text\" style=\"width: 100%;\">\n  <p>Enter your payment information</p>\n  <div class=\"form\">\n      <p class=\"mini\">Your Name</p>\n      <input id=\"name\"></input>\n      <p class=\"mini\">Card Number</p>\n      <input id=\"card_number\"></input>\n\n      <div>\n      <div class=\"long\">\n          <p class=\"mini\">Billing Address</p>\n          <input id=\"street_address\"></input>\n      </div>\n      <div class=\"short\">\n          <p class=\"mini\">Zip</p>\n          <input id=\"postal_code\"></input>\n      </div>\n      <br style=\"clear:both;\">\n\n      </div>\n\n      <div class=\"bottomRow\">\n          <div style=\"padding-left:0px;\" class=\"short bottom\">\n              <p class=\"mini\">Exp</p>\n              <input id=\"expiration\"></input>\n          </div>\n\n          <div class=\"short bottom\">\n              <p class=\"mini\">CVV</p>\n              <input id=\"security_code\"></input>\n          </div>\n\n      <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n      <a href=\"#\">\n          <button id=\"finish\" class=\"payments\">Next</button>\n      </a>\n  </div>\n\n  <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n  <!-- <a href=\"#\">\n    <button id=\"finish\" class=\"payments\">Next</button>\n  </a> -->\n</div>");
+        return $('#finish').on('click', onSignupComplete);
+      });
     });
   });
+
+  onSignupComplete = function(e) {
+    var cardData, expiration_month, expiration_year, expires, marketplaceUri, _ref;
+    marketplaceUri = "/v1/marketplaces/TEST-MP1m5fOk5GfP8YOKLODBqFiW";
+    balanced.init(marketplaceUri);
+    expiration_month = null;
+    expiration_year = null;
+    expires = (_ref = $("#expiration").val()) != null ? _ref.split('/') : void 0;
+    if ((expires != null ? expires.length : void 0) === 2) {
+      expiration_month = expires != null ? expires[0] : void 0;
+      expiration_year = expires != null ? expires[1] : void 0;
+      if ((expiration_year != null ? expiration_year.length : void 0) === 2) {
+        expiration_year = "20" + expiration_year;
+      }
+    }
+    cardData = {
+      name: $("#name").val(),
+      card_number: $("#card_number").val(),
+      expiration_month: expiration_month,
+      expiration_year: expiration_year,
+      security_code: $("#security_code").val(),
+      street_address: $("#street_address").val(),
+      postal_code: $("#postal_code").val(),
+      country_code: "USA"
+    };
+    console.log(cardData);
+    balanced.card.create(cardData, function(response) {
+      console.log("Got response!");
+      console.log(response.error);
+      console.log(response.status);
+      switch (response.status) {
+        case 200:
+        case 201:
+          alert("OK!");
+          $('.black').hide();
+          $('.card').hide();
+          return chrome.extension.sendMessage({
+            method: "setLocalStorage",
+            key: "seenHelp",
+            value: true
+          }, function(response) {
+            return null;
+          });
+        case 400:
+          alert("Missing field");
+          console.log;
+          return null;
+        case 402:
+          alert("We couldn't authorize the buyer's credit card");
+          return null;
+        case 404:
+          return alert("Marketplace uri is incorrect");
+        case 500:
+          return alert("Something bad happened please retry");
+      }
+    });
+    $('.card').html("<div class=\"text\" style=\"width: 100%;\">\n  <h2>Great!</h2>\n  <h3>You're all signed up for Value.</h3>\n  <img id=\"loading-gif\" src=\"" + (chrome.extension.getURL('loading.gif')) + "\" width=\"120\"/>\n  <div class=\"bottomRow\">\n    <a href=\"#\">\n      <button id=\"go-inbox\">Go to inbox</button>\n    </a>\n  </div>\n</div>");
+    return $('#go-inbox').on('click', function(e) {
+      $('.card').fadeOut();
+      return $('.black').fadeOut();
+    });
+  };
 
 }).call(this);
