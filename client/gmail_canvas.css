@@ -61,11 +61,11 @@
     transition: color 1s ease-in-out;
     -webkit-transition: color 1s ease-in-out;
     transition: background-color 1s ease-in-out;
-    -webkit-transition: color 1s ease-in-out; }
-  #collect-payment-button.completed-start {
+    -webkit-transition: background-color 1s ease-in-out; }
+  #collect-payment-button.start {
     color: whiteSmoke;
     background-color: whiteSmoke; }
-  #collect-payment-button.completed-end {
+  #collect-payment-button.end {
     color: white;
     background-color: #6cb87e; }
 

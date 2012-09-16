@@ -55,13 +55,13 @@
     transition: color 1s ease-in-out;
     -webkit-transition: color 1s ease-in-out;
     transition: background-color 1s ease-in-out;
-    -webkit-transition: color 1s ease-in-out;
+    -webkit-transition: background-color 1s ease-in-out;
   }
-  &.completed-start {
+  &.start {
     color: whiteSmoke;
     background-color: whiteSmoke;
   }
-  &.completed-end {
+  &.end {
     color: white;
     background-color: #6cb87e;
   }
