@@ -281,7 +281,20 @@
       $actions.append(PAYMENT_BUTTON);
       $button = $actions.find('#collect-payment-button');
       return $button.on('click', function(e) {
-        return $(this).addClass('completed');
+        var from, value;
+        $(this).addClass('completed');
+        from = $frame.content().find('span[email] ~ .go').text();
+        value = parseFloat(emailValue.slice(1), 10);
+        return chrome.extension.sendMessage({
+          method: "getUser",
+          email: from
+        }, function(resp) {
+          return chrome.extension.sendMessage({
+            method: "chargePayment",
+            to: resp.user,
+            amount: value
+          });
+        });
       });
     }
   };
@@ -338,19 +351,64 @@
         $('body').append('<div class="black"></div>');
         $('body').append('<div class="card"></div>');
         $('.card').html("<div class=\"text\">\n    <p>Your email is valuable.</p>\n    <img src=\"http://i.imgur.com/p1QBk.png\" style=\"padding-top: 10px;\">\n    <button id=\"install\">Install</button>\n</div>");
-        $('#install').on('click', function() {
+        return $('#install').on('click', function() {
           window.open('http://0.0.0.0:5000/register');
-          return $('.card').html("<div class=\"text\" style=\"width: 100%;\">\n    <p>Enter your payment information</p>\n    <div class=\"form\">\n      <p class=\"mini\">Your Name</p>\n      <input></input>\n      <p class=\"mini\">Card Number</p>\n      <input></input>\n\n      <div>\n      <div class=\"long\">\n        <p class=\"mini\">Billing Address</p>\n        <input></input>\n      </div>\n      <div class=\"short\">\n        <p class=\"mini\">Zip</p>\n        <input></input>\n      </div>\n      <br style=\"clear:both;\">\n\n      </div>\n\n      <div class=\"bottomRow\">\n        <div style=\"padding-left:0px;\" class=\"short bottom\">\n          <p class=\"mini\">Valid thru</p>\n          <input></input>\n        </div>\n\n        <div class=\"short bottom\">\n          <p class=\"mini\">CVV</p>\n          <input></input>\n        </div>\n\n      <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n      <a href=\"#\">\n        <button id=\"finish\" class=\"payments\">Next</button>\n      </a>\n    </div>\n\n  </div>");
-        });
-        return $('#finish').on('click', function() {
-          $('.black').hide();
-          $('.card').hide();
-          return chrome.extension.sendMessage({
-            method: "setLocalStorage",
-            key: "seenHelp",
-            value: true
-          }, function(response) {
-            return null;
+          $('.card').html("<div class=\"text\" style=\"width: 100%;\">\n      <p>Enter your payment information</p>\n      <div class=\"form\">\n          <p class=\"mini\">Your Name</p>\n          <input id=\"name\"></input>\n          <p class=\"mini\">Card Number</p>\n          <input id=\"card_number\"></input>\n\n          <div>\n          <div class=\"long\">\n              <p class=\"mini\">Billing Address</p>\n              <input id=\"street_address\"></input>\n          </div>\n          <div class=\"short\">\n              <p class=\"mini\">Zip</p>\n              <input id=\"postal_code\"></input>\n          </div>\n          <br style=\"clear:both;\">\n\n          </div>\n\n          <div class=\"bottomRow\">\n              <div style=\"padding-left:0px;\" class=\"short bottom\">\n                  <p class=\"mini\">Exp</p>\n                  <input id=\"expiration\"></input>\n              </div>\n\n              <div class=\"short bottom\">\n                  <p class=\"mini\">CVV</p>\n                  <input id=\"security_code\"></input>\n              </div>\n\n          <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n          <a href=\"#\">\n              <button id=\"finish\" class=\"payments\">Next</button>\n          </a>\n      </div>\n\n    <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n    <a href=\"#\">\n      <button id=\"finish\" class=\"payments\">Next</button>\n    </a>\n  </div>");
+          return $('#finish').on('click', function() {
+            var cardData, expiration_month, expiration_year, expires, marketplaceUri, _ref;
+            marketplaceUri = "/v1/marketplaces/TEST-MP1m5fOk5GfP8YOKLODBqFiW";
+            balanced.init(marketplaceUri);
+            expiration_month = null;
+            expiration_year = null;
+            expires = (_ref = $("#expiration").val()) != null ? _ref.split('/') : void 0;
+            if ((expires != null ? expires.length : void 0) === 2) {
+              expiration_month = expires != null ? expires[0] : void 0;
+              expiration_year = expires != null ? expires[1] : void 0;
+              if ((expiration_year != null ? expiration_year.length : void 0) === 2) {
+                expiration_year = "20" + expiration_year;
+              }
+            }
+            cardData = {
+              name: $("#name").val(),
+              card_number: $("#card_number").val(),
+              expiration_month: expiration_month,
+              expiration_year: expiration_year,
+              security_code: $("#security_code").val(),
+              street_address: $("#street_address").val(),
+              postal_code: $("#postal_code").val(),
+              country_code: "USA"
+            };
+            console.log(cardData);
+            return balanced.card.create(cardData, function(response) {
+              console.log("Got response!");
+              console.log(response.error);
+              console.log(response.status);
+              switch (response.status) {
+                case 200:
+                case 201:
+                  alert("OK!");
+                  $('.black').hide();
+                  $('.card').hide();
+                  return chrome.extension.sendMessage({
+                    method: "setLocalStorage",
+                    key: "seenHelp",
+                    value: true
+                  }, function(response) {
+                    return null;
+                  });
+                case 400:
+                  alert("missing field");
+                  console.log;
+                  return null;
+                case 402:
+                  alert("we couldn't authorize the buyer's credit card");
+                  return null;
+                case 404:
+                  return alert("marketplace uri is incorrect");
+                case 500:
+                  return alert("something bad happened please retry");
+              }
+            });
           });
         });
       }

@@ -216,7 +216,14 @@ email =
 
     $actions.append(PAYMENT_BUTTON)
     $button = $actions.find('#collect-payment-button')
-    $button.on 'click', (e) -> $(this).addClass('completed')
+
+    $button.on 'click', (e) ->
+      $(this).addClass('completed')
+      # ajax call to our API to charge payment
+      from = $frame.content().find('span[email] ~ .go').text()
+      value = parseFloat emailValue[1..], 10
+      chrome.extension.sendMessage {method: "getUser", email: from}, (resp) ->
+        chrome.extension.sendMessage {method: "chargePayment", to: resp.user, amount: value}
 
 modal =
   welcome: ->
@@ -242,11 +249,6 @@ renderValueLogo = ($frame) ->
 $(MAIN_FRAME_SELECTOR).ready ->
   $frame = $(MAIN_FRAME_SELECTOR)
   renderValueLogo($frame)
-
-  # if window.location.hash.match COMPOSE_PATH_REGEX
-  #   payment.renderButton()
-  # else if window.location.hash.match EMAIL_PATH_REGEX
-  #   email.read()
 
 
 DEBUG = true
@@ -406,45 +408,51 @@ $ ->
       # Main content for body
       $('body').append('<div class="card"></div>')
       $('.card').html """
-      <div class="text">
-          <p>Your email is valuable.</p>
-          <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
-          <button id="install">Install</button>
-      </div>
-      """
+        <div class="text">
+            <p>Your email is valuable.</p>
+            <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
+            <button id="install">Install</button>
+        </div>
+        """
       $('#install').on 'click', ->
-        window.open 'http://0.0.0.0:5000/register'
-        $('.card').html """
-        <div class="text" style="width: 100%;">
-            <p>Enter your payment information</p>
-            <div class="form">
-              <p class="mini">Your Name</p>
-              <input></input>
-              <p class="mini">Card Number</p>
-              <input></input>
+          window.open 'http://0.0.0.0:5000/register'
+          $('.card').html """
+          <div class="text" style="width: 100%;">
+                <p>Enter your payment information</p>
+                <div class="form">
+                    <p class="mini">Your Name</p>
+                    <input id="name"></input>
+                    <p class="mini">Card Number</p>
+                    <input id="card_number"></input>
 
-              <div>
-              <div class="long">
-                <p class="mini">Billing Address</p>
-                <input></input>
-              </div>
-              <div class="short">
-                <p class="mini">Zip</p>
-                <input></input>
-              </div>
-              <br style="clear:both;">
+                    <div>
+                    <div class="long">
+                        <p class="mini">Billing Address</p>
+                        <input id="street_address"></input>
+                    </div>
+                    <div class="short">
+                        <p class="mini">Zip</p>
+                        <input id="postal_code"></input>
+                    </div>
+                    <br style="clear:both;">
 
-              </div>
+                    </div>
 
-              <div class="bottomRow">
-                <div style="padding-left:0px;" class="short bottom">
-                  <p class="mini">Valid thru</p>
-                  <input></input>
-                </div>
+                    <div class="bottomRow">
+                        <div style="padding-left:0px;" class="short bottom">
+                            <p class="mini">Exp</p>
+                            <input id="expiration"></input>
+                        </div>
 
-                <div class="short bottom">
-                  <p class="mini">CVV</p>
-                  <input></input>
+                        <div class="short bottom">
+                            <p class="mini">CVV</p>
+                            <input id="security_code"></input>
+                        </div>
+
+                    <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
+                    <a href="#">
+                        <button id="finish" class="payments">Next</button>
+                    </a>
                 </div>
 
               <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
@@ -452,14 +460,55 @@ $ ->
                 <button id="finish" class="payments">Next</button>
               </a>
             </div>
-
-          </div>
-        """
-      $('#finish').on 'click', ->
-        $('.black').hide()
-        $('.card').hide()
-        chrome.extension.sendMessage {
-          method: "setLocalStorage"
-        , key: "seenHelp"
-        , value: true
-        }, (response) -> null
+          """
+          $('#finish').on 'click', ->
+              marketplaceUri = "/v1/marketplaces/TEST-MP1m5fOk5GfP8YOKLODBqFiW"
+              balanced.init(marketplaceUri);
+              expiration_month = null
+              expiration_year = null
+              # 'valid-thru' should be of form 1/2000 or 1/00
+              expires = $("#expiration").val()?.split('/')
+              if expires?.length == 2
+                  expiration_month = expires?[0]
+                  expiration_year = expires?[1]
+                  if expiration_year?.length == 2
+                      # assume it's 20??
+                      expiration_year = "20" + expiration_year
+              cardData =
+                  name: $("#name").val()
+                  card_number: $("#card_number").val()
+                  expiration_month: expiration_month
+                  expiration_year: expiration_year
+                  security_code: $("#security_code").val()
+                  street_address: $("#street_address").val()
+                  postal_code: $("#postal_code").val()
+                  country_code: "USA"
+              console.log cardData
+              balanced.card.create cardData, (response) ->
+                  console.log "Got response!"
+                  console.log response.error
+                  console.log response.status
+                  switch response.status
+                      when 200, 201
+                          alert "OK!"
+                          $('.black').hide()
+                          $('.card').hide()
+                          chrome.extension.sendMessage {
+                            method: "setLocalStorage"
+                          , key: "seenHelp"
+                          , value: true
+                          }, (response) ->
+                              null
+                      when 400
+                          # missing field
+                          alert "missing field"
+                          console.log
+                          null
+                      when 402
+                          # unauthorized
+                          alert "we couldn't authorize the buyer's credit card"
+                          null
+                      when 404
+                          alert "marketplace uri is incorrect"
+                      when 500
+                          alert "something bad happened please retry"
