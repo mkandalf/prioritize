@@ -97,21 +97,23 @@ def make_payment(receiver_id):
     db.session.commit()
     return Response(response=None)
 
-@app.route('/payments/<amount>/execute', methods=['POST'])
+@app.route('/payments/execute/', methods=['POST'])
 @auth.required
-def execute_payment(amount):
+def execute_payment():
     """Execute a payment"""
-    payment = Payment.query.filter(and_(Payment.receiver_id==session['user'].id, Payment.amount==amount, Payment.executed==False)).first()
+    amount = request.form.get('amount')
+    sender_id = request.form.get('from')
+    payment = Payment.query.filter(and_(Payment.receiver_id==session['user'].id, Payment.amount==amount, Payment.executed==False, Payment.sender_id==sender_id)).first()
     if payment:
-        merchant = balanced.Marketplace.my_marketplace.create_merchant(
-            session['user'].email,
-            {
-                "type": "person",
-                "name": session['user'].name,
-            },
-            name=session['user'].name,
-            bank_account_uri=session['user'].bank_account_uri)
-        merchant.credit(amount, appears_on_statement_as='value mail')
+        #merchant = balanced.Marketplace.my_marketplace.create_merchant(
+            #session['user'].email,
+            #{
+                #"type": "person",
+                #"name": session['user'].name,
+            #},
+            #name=session['user'].name,
+            #bank_account_uri=session['user'].bank_account_uri)
+        #merchant.credit(amount, appears_on_statement_as='value mail')
         payment.executed = True
         db.session.commit()
     return Response(response=None)
