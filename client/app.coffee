@@ -142,6 +142,8 @@ inbox =
         fake.remove()
     
     move_emails = =>
+      animate_emails()
+
       for email in @emails
         @emails[email.dest].replacement = email.node
 
@@ -162,7 +164,7 @@ inbox =
           evt = target[0].ownerDocument.createEvent 'MouseEvents'
           evt.initMouseEvent 'mousedown', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null
           target.find('td:nth-child(5)')[0].dispatchEvent evt
-        email.node.on 'mousedown', (e, real) =>
+        email.node.find('td:nth-child(n+5)').on 'mousedown', (e, real) =>
           if e.screenX != 0 or e.screenY != 0
             e.preventDefault()
             e.stopPropagation()
@@ -181,11 +183,10 @@ inbox =
     console.log 'sorting emails'
     sort_emails()
     console.log 'animating fakes'
-    setTimeout animate_emails, 1500
     console.log 'moving true emails'
     setTimeout move_emails, 1600
     console.log 'hiding fakes'
-    setTimeout hide_fakes, 3150
+    setTimeout hide_fakes, 3350
 
 email =
   read: ->

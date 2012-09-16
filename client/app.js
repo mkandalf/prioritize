@@ -195,6 +195,7 @@
       };
       move_emails = function() {
         var email, last_email, _i, _j, _len, _len1, _ref, _ref1, _results;
+        animate_emails();
         _ref = _this.emails;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           email = _ref[_i];
@@ -220,7 +221,7 @@
               evt.initMouseEvent('mousedown', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
               return target.find('td:nth-child(5)')[0].dispatchEvent(evt);
             };
-            return email.node.on('mousedown', function(e, real) {
+            return email.node.find('td:nth-child(n+5)').on('mousedown', function(e, real) {
               if (e.screenX !== 0 || e.screenY !== 0) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -244,11 +245,10 @@
       console.log('sorting emails');
       sort_emails();
       console.log('animating fakes');
-      setTimeout(animate_emails, 1500);
       console.log('moving true emails');
       setTimeout(move_emails, 1600);
       console.log('hiding fakes');
-      return setTimeout(hide_fakes, 3150);
+      return setTimeout(hide_fakes, 3350);
     }
   };
 
