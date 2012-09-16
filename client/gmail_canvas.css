@@ -58,14 +58,16 @@
   cursor: pointer; }
   #collect-payment-button.completed {
     cursor: auto;
+    transition: color 1s ease-in-out;
+    -webkit-transition: color 1s ease-in-out;
+    transition: background-color 1s ease-in-out;
+    -webkit-transition: color 1s ease-in-out; }
+  #collect-payment-button.completed-start {
+    color: whiteSmoke;
+    background-color: whiteSmoke; }
+  #collect-payment-button.completed-end {
     color: white;
-    background-color: #6cb87e;
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(100%, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false)));
-    background-image: -webkit-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
-    background-image: -moz-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
-    background-image: -ms-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
-    background-image: -o-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
-    background-image: linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false)); }
+    background-color: #6cb87e; }
 
 /* Table magic */
 .fake-email {
