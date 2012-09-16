@@ -52,8 +52,18 @@
   cursor: pointer;
   &.completed {
     cursor: auto;
+    transition: color 1s ease-in-out;
+    -webkit-transition: color 1s ease-in-out;
+    transition: background-color 1s ease-in-out;
+    -webkit-transition: color 1s ease-in-out;
+  }
+  &.completed-start {
+    color: whiteSmoke;
+    background-color: whiteSmoke;
+  }
+  &.completed-end {
     color: white;
-    @include linear-gradient(#6cb87e, #54a767);
+    background-color: #6cb87e;
   }
 }
 

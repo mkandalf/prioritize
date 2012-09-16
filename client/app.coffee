@@ -218,10 +218,11 @@ email =
     $button = $actions.find('#collect-payment-button')
 
     $button.on 'click', (e) ->
-      $(this).addClass('completed')
+      $(this).addClass 'completed start'
+      $(this).addClass 'end'
 
       # ajax call to our API to charge payment
-      from = $frame.content().find('span[email] ~ .go').text()
+      from = $frame.contents().find('span[email] ~ .go').text()
       value = parseFloat emailValue[1..], 10
 
       chrome.extension.sendMessage
@@ -259,7 +260,7 @@ $(MAIN_FRAME_SELECTOR).ready ->
   renderValueLogo($frame)
 
 
-DEBUG = true
+DEBUG = false
 
 
 ## DOM ready
