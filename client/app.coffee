@@ -11,9 +11,11 @@ window.addEventListener 'hashchange', ->
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 PAYMENT_FIELD_REGEX = /^\[\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\]/
 
+# helper method to generate underscore template functions given its dom ID
 template = (domId) ->
   _.template ($("##{domId}").html() || "").trim()
 
+# add a <link> tag to the iframe on the gmail app
 linkCSS = ($frame) ->
   $frame.contents().find('head').append $('<link/>',
     rel: 'stylesheet'
@@ -37,12 +39,10 @@ payment =
     $actions.children().last().before(
       '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>')
 
-    $paymentButton = $actions.find('#payment-button')
+    $paymentField = $actions.find('#payment-button input')
     # HACK: payment field isn't focusing on click by default.
-    $paymentButton.click (e) ->
-      $(this).find('input').focus()
-    $paymentButton.find('input').blur payment.paymentFieldHandler
-
+    $paymentField.on 'click', (e) -> $(this).focus()
+    $paymentField.on 'blur', @paymentFieldHandler
 
   hasCreatedPayment: false
 
@@ -170,7 +170,6 @@ inbox =
           else
             true
         
-    
 
     console.log 'getting emails'
     get_emails()
@@ -192,13 +191,12 @@ modal =
     $('body').append(modal)
     $modal = $('#welcome-modal')
 
-done_loading = ->
-  $(document.body).find('#loading').css('display') == 'none'
+$loading = $('#loading')
 
-timer = setInterval (->
-  if done_loading()
+loadingTimer = setInterval (->
+  if $loading.css('display') == 'none'
     inbox.sort()
-    clearInterval timer)
+    clearInterval loadingTimer)
   , 50
 
 $(MAIN_FRAME_SELECTOR).load ->
@@ -212,14 +210,18 @@ $(MAIN_FRAME_SELECTOR).load ->
 
 
 # DOM ready
-#$ ->
-    #console.log "requesting needs help data"
-    #chrome.extension.sendRequest {method: "getLocalStorage", key: "needsHelp"}, (response) ->
-        #needsHelp =  response.data
-        #console.log "needsHelp:", needsHelp
-        #if needsHelp
-            ## alert "It looks like you need help"
-            ## Apply black screen on top of gmail
-            #$('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
-            ## Main body for content
-            #$('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
+$ ->
+  console.log "requesting needs help data"
+  chrome.extension.sendRequest {
+    method: "getLocalStorage"
+  , key: "needsHelp"
+  }, (response) ->
+    needsHelp = response.data
+    console.log "needsHelp: #{needsHelp}"
+    if needsHelp
+      # alert "It looks like you need help"
+      # Apply black screen on top of gmail
+      # TODO: swap these out for underscore templates
+      $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
+      # Main body for content
+      $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')

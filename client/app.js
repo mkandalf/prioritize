@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  var MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, done_loading, inbox, linkCSS, modal, payment, template, timer,
+  var $loading, MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, inbox, linkCSS, loadingTimer, modal, payment, template,
     _this = this;
 
   console.log('Value for Gmail extension script loaded');
@@ -33,17 +33,17 @@
 
   payment = {
     renderButton: function() {
-      var $actions, $frame, $paymentButton;
+      var $actions, $frame, $paymentField;
       $frame = $(MAIN_FRAME_SELECTOR);
       linkCSS($frame);
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
       $actions.children('span').remove();
       $actions.children().last().before('<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>');
-      $paymentButton = $actions.find('#payment-button');
-      $paymentButton.click(function(e) {
-        return $(this).find('input').focus();
+      $paymentField = $actions.find('#payment-button input');
+      $paymentField.on('click', function(e) {
+        return $(this).focus();
       });
-      return $paymentButton.find('input').blur(payment.paymentFieldHandler);
+      return $paymentField.on('blur', _this.paymentFieldHandler);
     },
     hasCreatedPayment: false,
     paymentFieldHandler: function(e) {
@@ -236,14 +236,12 @@
     }
   };
 
-  done_loading = function() {
-    return $(document.body).find('#loading').css('display') === 'none';
-  };
+  $loading = $('#loading');
 
-  timer = setInterval((function() {
-    if (done_loading()) {
+  loadingTimer = setInterval((function() {
+    if ($loading.css('display') === 'none') {
       inbox.sort();
-      return clearInterval(timer);
+      return clearInterval(loadingTimer);
     }
   }), 50);
 
@@ -255,6 +253,22 @@
     if (window.location.hash.match(/compose/)) {
       return payment.renderButton();
     }
+  });
+
+  $(function() {
+    console.log("requesting needs help data");
+    return chrome.extension.sendRequest({
+      method: "getLocalStorage",
+      key: "needsHelp"
+    }, function(response) {
+      var needsHelp;
+      needsHelp = response.data;
+      console.log("needsHelp: " + needsHelp);
+      if (needsHelp) {
+        $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>');
+        return $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
+      }
+    });
   });
 
 }).call(this);
