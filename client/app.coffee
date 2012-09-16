@@ -142,8 +142,11 @@ inbox =
         fake.remove()
     
     move_emails = =>
+      for email in @emails
+        @emails[email.dest].replacement = email.node
+
       last_email = null
-      for email in _(@emails).sortBy 'dest'
+      for email in _(@emails).sortBy 'dest' then do (email) ->
         if not last_email?
           canonical_table.prepend email.node
         else
@@ -153,32 +156,18 @@ inbox =
         # We need to fix clicks, because google is stupid.
         # First, set the replacement nodes so we can find them later to simulate
         # clicks.
-        @emails[email.dest].replacement = email.node
         # Then intercept and redirect the clicks
-        email.node.on 'mousedown', (e, real) ->
-          if real != "fo' real"
+        # This method dispatches a fake mouse click on an jquery node
+        fake_event = (target) ->
+          evt = target[0].ownerDocument.createEvent 'MouseEvents'
+          evt.initMouseEvent 'mousedown', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null
+          target.find('td:nth-child(5)')[0].dispatchEvent evt
+        email.node.on 'mousedown', (e, real) =>
+          if e.screenX != 0 or e.screenY != 0
             e.preventDefault()
             e.stopPropagation()
             e.stopImmediatePropagation()
-            email.replacement.trigger 'mousedown', "fo' real"
-            false
-          else
-            true
-        email.node.on 'mouseup', (e, real) ->
-          if real != "fo' real"
-            e.preventDefault()
-            e.stopPropagation()
-            e.stopImmediatePropagation()
-            email.replacement.trigger 'mouseup', "fo' real"
-            false
-          else
-            true
-        email.node.on 'click', (e, real) ->
-          if real != "fo' real"
-            e.preventDefault()
-            e.stopPropagation()
-            e.stopImmediatePropagation()
-            email.replacement.trigger 'click', "fo' real"
+            fake_event email.replacement
             false
           else
             true
@@ -189,13 +178,15 @@ inbox =
     build_fakes()
     console.log 'toggling dummies'
     toggle_fakes()
-    console.log 'sorting'
+    console.log 'sorting emails'
     sort_emails()
+    console.log 'moving true emails'
     move_emails()
+    console.log 'animating fakes'
     setTimeout animate_emails, 1000
+    console.log 'hiding fakes'
     setTimeout hide_fakes, 1650
     #animate_emails()
-    #hide_fakes()
 
 email =
   read: ->
@@ -224,13 +215,13 @@ loadingTimer = setInterval (->
 
 $(MAIN_FRAME_SELECTOR).load ->
   $frame = $(MAIN_FRAME_SELECTOR)
-  linkCSS($frame)
+  iframe.linkCSS($frame)
 
   console.log 'main frame loaded'
 
   if window.location.hash.match /compose/
     payment.renderButton()
-  else if window.location.match /#inbox\/[a-f|0-9]+$/
+  else if window.location.hash.match /#inbox\/[a-f|0-9]+$/
     email.read()
 
 
