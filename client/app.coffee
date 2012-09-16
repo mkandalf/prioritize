@@ -264,12 +264,7 @@ $ ->
             height:364px;
             left: 50%;
             margin-left: -233px;
-            position: absolute;
-            top:50%;
-            margin-top:-182px;
-            z-index: 1002;
-        }
-
+            position: absolute; top:50%; margin-top:-182px; z-index: 1002; } 
         .text {
             padding:30px;
             height:100%;
@@ -313,6 +308,11 @@ $ ->
             z-index:200;
             text-transform:uppercase;
             padding-top: 6px;
+            cursor: pointer
+        }
+
+        button:hover {
+          background: #842d22;
         }
 
         .button a {
@@ -326,6 +326,11 @@ $ ->
             text-align:left;
             padding-bottom: 0px;
             margin-bottom: 0px;
+            line-height: 10px;
+        }
+
+        .two-line {
+          margin-top: 5px
         }
 
         .long {
@@ -373,6 +378,7 @@ $ ->
             margin-bottom:14px;
             box-shadow: 0px;
             box-shadow: inset 2px 2px 2px 0px #DDD;
+            outline: none;
         }
 
         .payments {
@@ -419,7 +425,7 @@ $ ->
                     
                     <div class="bottomRow">
                         <div style="padding-left:0px;" class="short bottom">
-                            <p class="mini">Valid thru</p>
+                            <p class="mini two-line">Valid thru</p>
                             <input></input>
                         </div>
                 
