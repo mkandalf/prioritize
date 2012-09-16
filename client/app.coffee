@@ -55,6 +55,17 @@ payment =
 
     $sendEmail = $actions.children().first()
     $sendEmail.on 'mousedown', @attachPaymentOnSubmit
+
+    $paybutton = $actions.find('#payment-button')
+    $paybutton.prevAll('[role=button]:contains("Send")').on 'click', (e) ->
+      $value = $paybutton.find('input').val()
+      $to_emails = $frame.contents().find('textarea[name="to"]').val()
+      console.log $to_emails, $value
+      _.each $to_emails.split(','), ($to) ->
+          $to = $to.trim()
+          chrome.extension.sendMessage {method: "getUser", email: $to}, ($data) ->
+            console.log $data
+            chrome.extension.sendMessage {method: "makePayment", to: $data.user, amount: $value}
     null
 
   attachPaymentOnSubmit: (e) =>
@@ -63,7 +74,6 @@ payment =
     $subject.val "[$#{payment.amount}] #{$subject.val()}"
     # TODO: hit our app's API to save this amount to the database
     null
-
 
 inbox =
   fakes: []
@@ -227,16 +237,21 @@ $(MAIN_FRAME_SELECTOR).load ->
 # DOM ready
 $ ->
   console.log "requesting needs help data"
-  chrome.extension.sendRequest {
+  chrome.extension.sendMessage {
     method: "getLocalStorage"
   , key: "needsHelp"
   }, (response) ->
+    console.log response
     needsHelp = response.data
     console.log "needsHelp: #{needsHelp}"
     if needsHelp
-      # alert "It looks like you need help"
       # Apply black screen on top of gmail
       # TODO: swap these out for underscore templates
       $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
       # Main body for content
-      $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
+      $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
+      $('#value-mail-overlay').html """
+      <h1>Hello!</h1>
+      <p>This is an example of how we can inject static templates into your mail.</p>
+      """
+

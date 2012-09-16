@@ -50,7 +50,7 @@
 
   payment = {
     renderButton: function() {
-      var $actions, $paymentField, $sendEmail, PAYMENT_BUTTON;
+      var $actions, $paybutton, $paymentField, $sendEmail, PAYMENT_BUTTON;
       PAYMENT_BUTTON = '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>';
       $actions = renderInActionBar(PAYMENT_BUTTON);
       $paymentField = $actions.find('#payment-button input');
@@ -62,6 +62,27 @@
       });
       $sendEmail = $actions.children().first();
       $sendEmail.on('mousedown', this.attachPaymentOnSubmit);
+      $paybutton = $actions.find('#payment-button');
+      $paybutton.prevAll('[role=button]:contains("Send")').on('click', function(e) {
+        var $to_emails, $value;
+        $value = $paybutton.find('input').val();
+        $to_emails = $frame.contents().find('textarea[name="to"]').val();
+        console.log($to_emails, $value);
+        return _.each($to_emails.split(','), function($to) {
+          $to = $to.trim();
+          return chrome.extension.sendMessage({
+            method: "getUser",
+            email: $to
+          }, function($data) {
+            console.log($data);
+            return chrome.extension.sendMessage({
+              method: "makePayment",
+              to: $data.user,
+              amount: $value
+            });
+          });
+        });
+      });
       return null;
     },
     attachPaymentOnSubmit: function(e) {
@@ -280,16 +301,18 @@
 
   $(function() {
     console.log("requesting needs help data");
-    return chrome.extension.sendRequest({
+    return chrome.extension.sendMessage({
       method: "getLocalStorage",
       key: "needsHelp"
     }, function(response) {
       var needsHelp;
+      console.log(response);
       needsHelp = response.data;
       console.log("needsHelp: " + needsHelp);
       if (needsHelp) {
         $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>');
-        return $('body').append('<div style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
+        $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
+        return $('#value-mail-overlay').html("<h1>Hello!</h1>\n<p>This is an example of how we can inject static templates into your mail.</p>");
       }
     });
   });

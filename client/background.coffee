@@ -1,4 +1,4 @@
-
+base_url = "http://localhost:5000"
 
 # Hook for action after the extension is installed
 onInstall = ->
@@ -35,7 +35,7 @@ if (currVersion != prevVersion)
     localStorage['version'] = currVersion
 
 # Event listener for content scripts
-chrome.extension.onRequest.addListener (request, sender, sendResponse) ->
+chrome.extension.onMessage.addListener (request, sender, sendResponse) ->
     # Let a content script retrieve a value from local storage
     # parameters: key
     if (request.method == "getLocalStorage")
@@ -45,5 +45,23 @@ chrome.extension.onRequest.addListener (request, sender, sendResponse) ->
     else if (request.method == "setLocalStorage")
         localStorage[request.key] = request.value
         sendResponse {data: localStorage[request.key]}
+    else if (request.method == "getUser")
+        $.ajax {
+            url: base_url+"/users/lookup/",
+            data: {email: request.email},
+            type: "get",
+            xhrFields: {
+               withCredentials: true
+            },
+            dataType: "json",
+            success: (data) ->
+                console.log(data)
+                sendResponse {data: data}
+        }
+        true
+    else if (request.method == "makePayment")
+        $.post base_url+"/users/"+request.to+"/payments/new", {amount: request.amount}, (data) ->
+            sendResponse {data: data}
+        true
     else
         sendResponse {} # snub them.
