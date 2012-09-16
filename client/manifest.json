@@ -4,7 +4,7 @@
 , "manifest_version": 2
 , "description": "Add value to your Gmail inbox with paid email messages."
 , "icons": { "128": "icon.png" }
-, "browser_action": { 
+, "browser_action": {
     "default_title": "Value for Gmail"
   }
 , "background": {
@@ -31,5 +31,6 @@
 , "web_accessible_resources": [
     "gmail_canvas.css"
   , "value_logo.png"
+  , "loading.gif"
   ]
 }

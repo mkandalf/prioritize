@@ -273,255 +273,280 @@ $ ->
   , key: "seenHelp"
   }, (response) ->
     seenHelp = response.data
-    if DEBUG or not seenHelp?
-      # Apply black screen on top of gmail
-      $('body').append """
-      <style type="text/css">
-      body {
-            width: 100%;
-            height: 100%;
-            margin: 0px;
-            padding: 0px;
-            background-image: url('http://i.imgur.com/dYFOK.png');
-            background-repeat: no-repeat;
-            font-family:Arial, sans-serif;
-        }
+    return unless DEBUG or not seenHelp?
+    # Apply black screen on top of gmail
+    $('body').append """
+    <style type="text/css">
+    body {
+          width: 100%;
+          height: 100%;
+          margin: 0px;
+          padding: 0px;
+          background-image: url('http://i.imgur.com/dYFOK.png');
+          background-repeat: no-repeat;
+          font-family:Arial, sans-serif;
+      }
 
-        .card {
-            background-image:url('http://i.imgur.com/4YvgN.png');
-            width:466px;
-            height:364px;
-            left: 50%;
-            margin-left: -233px;
-            position: absolute; top:50%; margin-top:-182px; z-index: 1002; }
-        .text {
-            padding:30px;
-            height:100%;
-            width:100%;
-            text-align:center;
-            width: 406px;
-            font-weight: bold;
-            font-size: 20px;
-            margin: auto
-        }
+    .card {
+        background-image:url('http://i.imgur.com/4YvgN.png');
+        width:466px;
+        height:364px;
+        left: 50%;
+        margin-left: -233px;
+        position: absolute; top:50%; margin-top:-182px; z-index: 1002; }
+    .text {
+        padding:30px;
+        height:100%;
+        width:100%;
+        text-align:center;
+        width: 406px;
+        font-weight: bold;
+        font-size: 20px;
+        margin: auto
+    }
 
-        .black {
-            background-color: black;
-            opacity: .6;
-            z-index: 1001;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            margin: 0px;
-            padding: 0px;
-            top: 0px;
-            left: 0px;
-        }
+    .black {
+        background-color: black;
+        opacity: .6;
+        z-index: 1001;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        margin: 0px;
+        padding: 0px;
+        top: 0px;
+        left: 0px;
+    }
 
-        button {
-            background: #DD4B39;
-            border: 1px solid #EB4921;
-            width: 167px;
-            height: 28px;
-            border-radius: 4px;
-            margin: 0 auto;
-            margin-top:26px;
-            color: white;
-            font-family: "arial";
-            font-size: 9pt;
-            font-weight: bold;
-            font-style: normal;
-            text-align: center;
-            text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);
-            line-height: 13px;
-            z-index:200;
-            text-transform:uppercase;
-            padding-top: 6px;
-            cursor: pointer
-        }
+    button {
+        background: #DD4B39;
+        border: 1px solid #EB4921;
+        width: 167px;
+        height: 28px;
+        border-radius: 4px;
+        margin: 0 auto;
+        margin-top:26px;
+        color: white;
+        font-family: "arial";
+        font-size: 9pt;
+        font-weight: bold;
+        font-style: normal;
+        text-align: center;
+        text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);
+        line-height: 13px;
+        z-index:200;
+        text-transform:uppercase;
+        padding-top: 6px;
+        cursor: pointer
+    }
 
-        button:hover {
-          background: #842d22;
-        }
+    button:hover {
+      background: #842d22;
+    }
 
-        .button a {
-            text-decoration: none;
-        }
+    .button a {
+        text-decoration: none;
+    }
 
-        .mini {
-            color:#626161;
-            font-size:7pt;
-            text-transform:uppercase;
-            text-align:left;
-            padding-bottom: 0px;
-            margin-bottom: 0px;
-        }
+    .mini {
+        color:#626161;
+        font-size:7pt;
+        text-transform:uppercase;
+        text-align:left;
+        padding-bottom: 0px;
+        margin-bottom: 0px;
+    }
 
-        .two-line {
-          margin-top: 5px
-        }
+    .two-line {
+      margin-top: 5px
+    }
 
-        .long {
-            width:286px;
-            float:left;
-        }
+    .long {
+        width:286px;
+        float:left;
+    }
 
-        .short {
-            width:90px;
-            float:left;
-            padding-left:30px;
+    .short {
+        width:90px;
+        float:left;
+        padding-left:30px;
 
-        }
+    }
 
-        .bottomRow {
-            padding-top: 10px;
-        }
-        .bottom {
-            padding-left:4px;width:143px;
-        }
+    .bottomRow {
+        padding-top: 10px;
+    }
+    .bottom {
+        padding-left:4px;width:143px;
+    }
 
-        .bottom .mini {
-            width:30px;height:30px;float:left;text-align:right;padding-right:5px;
-        }
+    .bottom .mini {
+        width:30px;height:30px;float:left;text-align:right;padding-right:5px;
+    }
 
-        .short input {
-            float:left;width:90px;
-        }
+    .short input {
+        float:left;width:90px;
+    }
 
-        .bottom input {
-            float:left;width:104px;
-        }
+    .bottom input {
+        float:left;width:104px;
+    }
 
-        .form {
-            text-align:left;
-        }
+    .form {
+        text-align:left;
+    }
 
-        input {
-            border-radius: 3px;
-            border-color: #CDCDCD;
-            border-width: 1px;
-            width: 100%;
-            height: 23px;
-            margin-top: 3px;
-            margin-bottom:14px;
-            box-shadow: 0px;
-            box-shadow: inset 2px 2px 2px 0px #DDD;
-            outline: none;
-        }
+    input {
+        border-radius: 3px;
+        border: solid 1px #DDD;
+        width: 100%;
+        padding: 4px;
+        margin-bottom: 4px;
+        box-shadow: inset 0px 2px 5px 0px #DDD;
+        outline: none;
+        font-size: 14px;
+        color: #666;
+    }
 
-        .payments {
-            width: 89px;
-            margin-left: 29px;
-            float: right;
-            margin: 0;
-        }
-      </style>
+    .bottom .mini {
+      width: 23px;
+      margin-top: 2px;
+    }
+    .bottom { width: 143px; }
+    .bottom .input { width: 116px; }
+
+    .payments {
+        width: 89px;
+        margin-left: 29px;
+        float: right;
+        margin: 0;
+    }
+
+    #loading-gif { margin-bottom: -15px; }
+    </style>
+    """
+    $('body').append('<div class="black"></div>')
+    # Main content for body
+    $('body').append('<div class="card"></div>')
+    $('.card').html """
+      <div class="text">
+          <p>Your email is valuable.</p>
+          <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
+          <button id="install">Get Started</button>
+      </div>
       """
-      $('body').append('<div class="black"></div>')
-      # Main content for body
-      $('body').append('<div class="card"></div>')
-      $('.card').html """
-        <div class="text">
-            <p>Your email is valuable.</p>
-            <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
-            <button id="install">Install</button>
-        </div>
-        """
-      $('#install').on 'click', ->
-          window.open 'http://value.herokuapp.com/register'
-          $('.card').html """
+    $('#install').on 'click', ->
+        window.open 'http://value.herokuapp.com/register'
+        $('.card').html """
           <div class="text" style="width: 100%;">
-                <p>Enter your payment information</p>
-                <div class="form">
-                    <p class="mini">Your Name</p>
-                    <input id="name"></input>
-                    <p class="mini">Card Number</p>
-                    <input id="card_number"></input>
+            <p>Enter your payment information</p>
+            <div class="form">
+                <p class="mini">Your Name</p>
+                <input id="name"></input>
+                <p class="mini">Card Number</p>
+                <input id="card_number"></input>
 
-                    <div>
-                    <div class="long">
-                        <p class="mini">Billing Address</p>
-                        <input id="street_address"></input>
-                    </div>
-                    <div class="short">
-                        <p class="mini">Zip</p>
-                        <input id="postal_code"></input>
-                    </div>
-                    <br style="clear:both;">
+                <div>
+                <div class="long">
+                    <p class="mini">Billing Address</p>
+                    <input id="street_address"></input>
+                </div>
+                <div class="short">
+                    <p class="mini">Zip</p>
+                    <input id="postal_code"></input>
+                </div>
+                <br style="clear:both;">
 
-                    </div>
-
-                    <div class="bottomRow">
-                        <div style="padding-left:0px;" class="short bottom">
-                            <p class="mini">Exp</p>
-                            <input id="expiration"></input>
-                        </div>
-
-                        <div class="short bottom">
-                            <p class="mini">CVV</p>
-                            <input id="security_code"></input>
-                        </div>
-
-                    <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
-                    <a href="#">
-                        <button id="finish" class="payments">Next</button>
-                    </a>
                 </div>
 
-              <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
-              <a href="#">
-                <button id="finish" class="payments">Next</button>
-              </a>
+                <div class="bottomRow">
+                    <div style="padding-left:0px;" class="short bottom">
+                        <p class="mini">Exp</p>
+                        <input id="expiration"></input>
+                    </div>
+
+                    <div class="short bottom">
+                        <p class="mini">CVV</p>
+                        <input id="security_code"></input>
+                    </div>
+
+                <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
+                <a href="#">
+                    <button id="finish" class="payments">Next</button>
+                </a>
             </div>
-          """
-          $('#finish').on 'click', ->
-              marketplaceUri = "/v1/marketplaces/TEST-MP1m5fOk5GfP8YOKLODBqFiW"
-              balanced.init(marketplaceUri);
-              expiration_month = null
-              expiration_year = null
-              # 'valid-thru' should be of form 1/2000 or 1/00
-              expires = $("#expiration").val()?.split('/')
-              if expires?.length == 2
-                  expiration_month = expires?[0]
-                  expiration_year = expires?[1]
-                  if expiration_year?.length == 2
-                      # assume it's 20??
-                      expiration_year = "20" + expiration_year
-              cardData =
-                  name: $("#name").val()
-                  card_number: $("#card_number").val()
-                  expiration_month: expiration_month
-                  expiration_year: expiration_year
-                  security_code: $("#security_code").val()
-                  street_address: $("#street_address").val()
-                  postal_code: $("#postal_code").val()
-                  country_code: "USA"
-              console.log cardData
-              balanced.card.create cardData, (response) ->
-                  console.log "Got response!"
-                  console.log response.error
-                  console.log response.status
-                  switch response.status
-                      when 200, 201
-                          alert "OK!"
-                          $('.black').hide()
-                          $('.card').hide()
-                          chrome.extension.sendMessage {
-                            method: "setLocalStorage"
-                          , key: "seenHelp"
-                          , value: true
-                          }, (response) ->
-                              null
-                      when 400
-                          # missing field
-                          alert "missing field"
-                          console.log
-                          null
-                      when 402
-                          # unauthorized
-                          alert "we couldn't authorize the buyer's credit card"
-                          null
-                      when 404
-                          alert "marketplace uri is incorrect"
-                      when 500
-                          alert "something bad happened please retry"
+
+            <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
+            <!-- <a href="#">
+              <button id="finish" class="payments">Next</button>
+            </a> -->
+          </div>
+        """
+        $('#finish').on 'click', onSignupComplete
+
+onSignupComplete = (e) ->
+    marketplaceUri = "/v1/marketplaces/TEST-MP1m5fOk5GfP8YOKLODBqFiW"
+    balanced.init(marketplaceUri);
+    expiration_month = null
+    expiration_year = null
+    # 'valid-thru' should be of form 1/2000 or 1/00
+    expires = $("#expiration").val()?.split('/')
+    if expires?.length == 2
+        expiration_month = expires?[0]
+        expiration_year = expires?[1]
+        if expiration_year?.length == 2
+            # assume it's 20??
+            expiration_year = "20" + expiration_year
+    cardData =
+        name: $("#name").val()
+        card_number: $("#card_number").val()
+        expiration_month: expiration_month
+        expiration_year: expiration_year
+        security_code: $("#security_code").val()
+        street_address: $("#street_address").val()
+        postal_code: $("#postal_code").val()
+        country_code: "USA"
+    console.log cardData
+    balanced.card.create cardData, (response) ->
+        console.log "Got response!"
+        console.log response.error
+        console.log response.status
+        switch response.status
+            when 200, 201
+                alert "OK!"
+                $('.black').hide()
+                $('.card').hide()
+                chrome.extension.sendMessage {
+                  method: "setLocalStorage"
+                , key: "seenHelp"
+                , value: true
+                }, (response) ->
+                    null
+            when 400
+                # missing field
+                alert "Missing field"
+                console.log
+                null
+            when 402
+                # unauthorized
+                alert "We couldn't authorize the buyer's credit card"
+                null
+            when 404
+                alert "Marketplace uri is incorrect"
+            when 500
+                alert "Something bad happened please retry"
+    $('.card').html """
+      <div class="text" style="width: 100%;">
+        <h2>Great!</h2>
+        <h3>You're all signed up for Value.</h3>
+        <img id="loading-gif" src="#{chrome.extension.getURL('loading.gif')}" width="120"/>
+        <div class="bottomRow">
+          <a href="#">
+            <button id="go-inbox">Go to inbox</button>
+          </a>
+        </div>
+      </div>
+    """
+    $('#go-inbox').on 'click', (e) ->
+      $('.card').fadeOut();
+      $('.black').fadeOut();
