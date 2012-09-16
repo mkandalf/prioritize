@@ -301,4 +301,22 @@
     }
   });
 
+  $(function() {
+    console.log("requesting needs help data");
+    return chrome.extension.sendMessage({
+      method: "getLocalStorage",
+      key: "needsHelp"
+    }, function(response) {
+      var needsHelp;
+      console.log(response);
+      needsHelp = response.data;
+      console.log("needsHelp: " + needsHelp);
+      if (needsHelp) {
+        $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>');
+        $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
+        return $('#value-mail-overlay').html("<h1>Hello!</h1>\n<p>This is an example of how we can inject static templates into your mail.</p>");
+      }
+    });
+  });
+
 }).call(this);

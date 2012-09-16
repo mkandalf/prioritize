@@ -198,7 +198,6 @@ inbox =
 
 email =
   read: ->
-    # TODO: add ajax call to our API to get emailValue
     PAYMENT_BUTTON = "<div id='collect-payment-button'>$#{emailValue}</div>"
 
     $actions = renderInActionBar(PAYMENT_BUTTON)
@@ -234,23 +233,23 @@ $(MAIN_FRAME_SELECTOR).load ->
 
 
 ## DOM ready
-#$ ->
-  #console.log "requesting needs help data"
-  #chrome.extension.sendMessage {
-    #method: "getLocalStorage"
-  #, key: "needsHelp"
-  #}, (response) ->
-    #console.log response
-    #needsHelp = response.data
-    #console.log "needsHelp: #{needsHelp}"
-    #if needsHelp
-      ## Apply black screen on top of gmail
-      ## TODO: swap these out for underscore templates
-      #$('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
-      ## Main body for content
-      #$('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
-      #$('#value-mail-overlay').html """
-      #<h1>Hello!</h1>
-      #<p>This is an example of how we can inject static templates into your mail.</p>
-      #"""
+$ ->
+  console.log "requesting needs help data"
+  chrome.extension.sendMessage {
+    method: "getLocalStorage"
+  , key: "needsHelp"
+  }, (response) ->
+    console.log response
+    needsHelp = response.data
+    console.log "needsHelp: #{needsHelp}"
+    if needsHelp
+      # Apply black screen on top of gmail
+      # TODO: swap these out for underscore templates
+      $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
+      # Main body for content
+      $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
+      $('#value-mail-overlay').html """
+      <h1>Hello!</h1>
+      <p>This is an example of how we can inject static templates into your mail.</p>
+      """
 
