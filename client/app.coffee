@@ -6,6 +6,8 @@ console.log('Value for Gmail extension script loaded')
 window.addEventListener 'hashchange', ->
   if window.location.hash.match /compose/
     payment.renderButton()
+  else if window.location.hash.match /^#inbox$/
+    inbox.sort()
 
 # the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
@@ -76,9 +78,15 @@ payment =
     null
 
 inbox =
+  sorted: false
   fakes: []
   emails: []
   sort: =>
+    if @sorted or not window.location.hash.match /^#inbox$/
+      return
+    
+    @sorted = true
+
     canonical_table = $(MAIN_FRAME_SELECTOR).contents()
                                             .find('table > colgroup').eq(0)
                                             .parent()
@@ -225,24 +233,24 @@ $(MAIN_FRAME_SELECTOR).load ->
     email.read()
 
 
-# DOM ready
-$ ->
-  console.log "requesting needs help data"
-  chrome.extension.sendMessage {
-    method: "getLocalStorage"
-  , key: "needsHelp"
-  }, (response) ->
-    console.log response
-    needsHelp = response.data
-    console.log "needsHelp: #{needsHelp}"
-    if needsHelp
-      # Apply black screen on top of gmail
-      # TODO: swap these out for underscore templates
-      $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
-      # Main body for content
-      $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
-      $('#value-mail-overlay').html """
-      <h1>Hello!</h1>
-      <p>This is an example of how we can inject static templates into your mail.</p>
-      """
+## DOM ready
+#$ ->
+  #console.log "requesting needs help data"
+  #chrome.extension.sendMessage {
+    #method: "getLocalStorage"
+  #, key: "needsHelp"
+  #}, (response) ->
+    #console.log response
+    #needsHelp = response.data
+    #console.log "needsHelp: #{needsHelp}"
+    #if needsHelp
+      ## Apply black screen on top of gmail
+      ## TODO: swap these out for underscore templates
+      #$('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
+      ## Main body for content
+      #$('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
+      #$('#value-mail-overlay').html """
+      #<h1>Hello!</h1>
+      #<p>This is an example of how we can inject static templates into your mail.</p>
+      #"""
 

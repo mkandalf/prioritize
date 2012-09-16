@@ -10,6 +10,8 @@
   window.addEventListener('hashchange', function() {
     if (window.location.hash.match(/compose/)) {
       return payment.renderButton();
+    } else if (window.location.hash.match(/^#inbox$/)) {
+      return inbox.sort();
     }
   });
 
@@ -94,10 +96,15 @@
   };
 
   inbox = {
+    sorted: false,
     fakes: [],
     emails: [],
     sort: function() {
       var animate_emails, build_fakes, canonical_table, get_emails, hide_fakes, move_emails, sort_emails, toggle_fakes;
+      if (_this.sorted || !window.location.hash.match(/^#inbox$/)) {
+        return;
+      }
+      _this.sorted = true;
       canonical_table = $(MAIN_FRAME_SELECTOR).contents().find('table > colgroup').eq(0).parent();
       get_emails = function() {
         var $emails;
@@ -292,24 +299,6 @@
     } else if (window.location.hash.match(/#inbox\/[a-f|0-9]+$/)) {
       return email.read();
     }
-  });
-
-  $(function() {
-    console.log("requesting needs help data");
-    return chrome.extension.sendMessage({
-      method: "getLocalStorage",
-      key: "needsHelp"
-    }, function(response) {
-      var needsHelp;
-      console.log(response);
-      needsHelp = response.data;
-      console.log("needsHelp: " + needsHelp);
-      if (needsHelp) {
-        $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>');
-        $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
-        return $('#value-mail-overlay').html("<h1>Hello!</h1>\n<p>This is an example of how we can inject static templates into your mail.</p>");
-      }
-    });
   });
 
 }).call(this);
