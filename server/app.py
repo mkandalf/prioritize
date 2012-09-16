@@ -116,17 +116,16 @@ def execute_payment(amount):
         db.session.commit()
     return Response(response=None)
 
-@app.route('/logout/')
+@app.route('/full_logout/')
 @auth.required
 def logout():
     session = {}
     return "Logged out"
 
-@app.route('/login')
+@app.route('/register')
 @auth.required
 def login():
-  return "Logged in"
-
+    return Response(response="<script>window.close();</script>")
 
 @app.route('/')
 def index():
