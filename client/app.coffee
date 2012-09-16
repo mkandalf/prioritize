@@ -18,7 +18,7 @@ linkCSS = ($frame) ->
   $frame.contents().find('head').append $('<link/>',
     rel: 'stylesheet'
     type: 'text/css'
-    href: chrome.extension.getURL('gmail_canvas.css')
+    href: chrome.extension.getURL 'gmail_canvas.css'
   )
 
 # all kinds of payment stuffs
@@ -36,8 +36,19 @@ payment =
     $actions.children().last().before(
       '<div id="payment-button">$<input type="text" name="pay_amount" /></div>')
 
-    $actions.find('#payment-button').on 'click', (e) ->
+    $paybutton = $actions.find('#payment-button')
+    $paybutton.on 'click', (e) ->
       $(this).find('input').focus()
+    $paybutton.prevAll('[role=button]:contains("Send")').on 'click', (e) ->
+      $value = $paybutton.find('input').val()
+      $to_emails = $frame.contents().find('textarea[name="to"]').val()
+      console.log $to_emails, $value
+      _.each $to_emails.split(','), ($to) ->
+          $to = $to.trim()
+          chrome.extension.sendMessage {method: "getUser", email: $to}, ($data) ->
+            console.log $data
+            chrome.extension.sendMessage {method: "makePayment", to: $data.user, amount: $value}
+      
 
   hasCreatedPayment: false
 
@@ -132,10 +143,10 @@ $(MAIN_FRAME_SELECTOR).load ->
 # DOM ready
 $ ->
     console.log "requesting needs help data"
-    chrome.extension.sendRequest {method: "getLocalStorage", key: "needsHelp"}, (response) ->
+    chrome.extension.sendMessage {method: "getLocalStorage", key: "needsHelp"}, (response) ->
         needsHelp =  response.data
         console.log "needsHelp:", needsHelp
-        if needsHelp
+        if false && needsHelp
             # alert "It looks like you need help"
             # Apply black screen on top of gmail
             $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')

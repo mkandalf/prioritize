@@ -1,4 +1,5 @@
 import os
+import json
 
 #from flask_oauth import OAuth
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -26,6 +27,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
 
     name = db.Column(db.String(32), nullable=True, default='')
+    email = db.Column(db.String(255), nullable=True)
     google_id = db.Column(db.String(255), nullable=True)
     google_token = db.Column(db.String(255), nullable=True)
     openid = db.Column(db.String(255), nullable=False)
@@ -50,9 +52,14 @@ class ValueGoogleAuth(GoogleAuth):
             # Google auth failed.
             abort(403)
         else:
-            if not User.query.filter_by(openid=user["identity"]).first():
-                db.session.add(User(openid=user["identity"]))
+            base_user = User.query.filter_by(openid=user["identity"]).first()
+            if not base_user:
+                db.session.add(User(openid=user["identity"], email=user['email']))
                 db.session.commit()
+            else:
+                base_user.email = user['email']
+                db.session.commit()
+
         # This is redundant, but I fear the entire library will break if I kill the first line.
         session['openid'] = user
         session['user'] = User.query.filter_by(openid=user["identity"]).first()
@@ -60,11 +67,22 @@ class ValueGoogleAuth(GoogleAuth):
 
 auth = ValueGoogleAuth(app)
 
+@app.route('/users/lookup/')
+@auth.required
+def lookup_user():
+    email = request.args['email']
+    user = User.query.filter(User.email==email).first()
+    if user:
+        return json.dumps({'user': user.id})
+    else:
+        return "User not found", 404
+
 @app.route('/users/<receiver_id>/payments/new', methods=['POST'])
 @auth.required
 def make_payment(receiver_id):
     """Make a new payment"""
     amount = request.form.get('amount')
+    print amount
     payment = Payment(sender_id=session['user'].id, receiver_id=receiver_id, amount=amount)
     db.session.add(payment)
     db.session.commit()
@@ -79,6 +97,11 @@ def execute_payment(amount):
         payment.executed = True
         db.session.commit()
     return Response(response=None)
+
+@app.route('/logout/')
+def logout():
+    session = {}
+    return "Logged out"
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
