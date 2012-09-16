@@ -278,6 +278,7 @@ $ ->
             width: 406px;
             font-weight: bold;
             font-size: 20px;
+            margin: auto
         }
 
         .black {
