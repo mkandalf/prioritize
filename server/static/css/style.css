@@ -2,7 +2,7 @@ html, body{
 	margin: 0px;
 	padding: 0px;
 	background-color: #ffffff;
-	background-image: url(background.png);
+	background-image: url(../img/background.png);
 	background-repeat: repeat;
 	background-position: top left;
 	overflow:hidden;
@@ -42,12 +42,12 @@ p, h1, h2, h3, h4, h5, h6 {margin: 0;}
 	position:relative;
 }
 
-.header { width:100%; height:9px; background-image:url('header.png'); background-repeat:x-repeat;}
+.header { width:100%; height:9px; background-image:url('../img/header.png'); background-repeat:x-repeat;}
 
 
 .paper{
 	padding-top: 30px;
-	background: transparent url(paper.png) top left no-repeat;
+	background: transparent url(../img/paper.png) top left no-repeat;
 	border: none;
 	height: 700px;
 	width: 607px;
