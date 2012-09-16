@@ -219,11 +219,19 @@ email =
 
     $button.on 'click', (e) ->
       $(this).addClass('completed')
+
       # ajax call to our API to charge payment
       from = $frame.content().find('span[email] ~ .go').text()
       value = parseFloat emailValue[1..], 10
-      chrome.extension.sendMessage {method: "getUser", email: from}, (resp) ->
-        chrome.extension.sendMessage {method: "chargePayment", to: resp.user, amount: value}
+
+      chrome.extension.sendMessage
+        method: "getUser"
+        email: from
+      , (resp) ->
+          chrome.extension.sendMessage
+            method: "chargePayment"
+            from: resp.user
+            amount: value
 
 modal =
   welcome: ->
@@ -285,7 +293,7 @@ $ ->
             height:364px;
             left: 50%;
             margin-left: -233px;
-            position: absolute; top:50%; margin-top:-182px; z-index: 1002; } 
+            position: absolute; top:50%; margin-top:-182px; z-index: 1002; }
         .text {
             padding:30px;
             height:100%;

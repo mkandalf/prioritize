@@ -2,7 +2,7 @@
 (function() {
   var base_url, currVersion, getVersion, onInstall, onUpdate, prevVersion;
 
-  base_url = "http://localhost:5000";
+  base_url = "http://value.herokuapp.com";
 
   onInstall = function() {
     chrome.tabs.getSelected(function(tab) {
@@ -49,7 +49,7 @@
       });
     } else if (request.method === "getUser") {
       $.ajax({
-        url: base_url + "/users/lookup/",
+        url: "" + base_url + "/users/lookup/",
         data: {
           email: request.email
         },
@@ -67,8 +67,19 @@
       });
       return true;
     } else if (request.method === "makePayment") {
-      $.post(base_url + "/users/" + request.to + "/payments/new", {
+      $.post("" + base_url + "/users/" + request.to + "/payments/new", {
         amount: request.amount
+      }, function(data) {
+        return sendResponse({
+          data: data
+        });
+      });
+      return true;
+    } else if (request.method === "chargePayment") {
+      $.post("" + base_url + "/payments/execute", {
+        amount: request.amount({
+          from: request.from
+        })
       }, function(data) {
         return sendResponse({
           data: data
