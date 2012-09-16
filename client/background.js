@@ -5,7 +5,6 @@
   base_url = "http://localhost:5000";
 
   onInstall = function() {
-    localStorage['needsHelp'] = true;
     chrome.tabs.getSelected(function(tab) {
       return chrome.tabs.update(tab.id, {
         'url': "http://mail.google.com"
