@@ -423,7 +423,13 @@ $ ->
         margin: 0;
     }
 
-    #loading-gif { margin-bottom: -15px; }
+    .signed-up {
+      display: none;
+    }
+
+    #loading-gif {
+      margin-bottom: -15px;
+    }
     </style>
     """
     $('body').append('<div class="black"></div>')
@@ -538,16 +544,21 @@ onSignupComplete = (e) ->
                 alert "Something bad happened please retry"
     $('.card').html """
       <div class="text" style="width: 100%;">
-        <h2>Great!</h2>
-        <h3>You're all signed up for Value.</h3>
+        <div class="signed-up">
+          <h2>Great!</h2>
+          <h3>You're all signed up for Value.</h3>
+        </div>
         <img id="loading-gif" src="#{chrome.extension.getURL('loading.gif')}" width="120"/>
         <div class="bottomRow">
-          <a href="#">
+          <a href="#" class="signed-up">
             <button id="go-inbox">Go to inbox</button>
           </a>
         </div>
       </div>
     """
+    _.delay(->
+      $('.signed-up').slideDown();
+    , 2000)
     $('#go-inbox').on 'click', (e) ->
       $('.card').fadeOut();
       $('.black').fadeOut();
