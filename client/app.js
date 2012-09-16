@@ -2,7 +2,7 @@
 (function() {
   'use strict';
 
-  var $loading, COMPOSE_PATH_REGEX, INBOX_PATH_REGEX, MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, email, iframe, inbox, loadingTimer, modal, payment, renderInActionBar, renderValueLogo, template,
+  var $loading, COMPOSE_PATH_REGEX, DEBUG, EMAIL_PATH_REGEX, MAIN_FRAME_SELECTOR, PAYMENT_FIELD_REGEX, email, iframe, inbox, loadingTimer, modal, payment, renderInActionBar, renderValueLogo, template,
     _this = this;
 
   console.log('Value for Gmail extension script loaded');
@@ -13,13 +13,15 @@
 
   COMPOSE_PATH_REGEX = /compose/;
 
-  INBOX_PATH_REGEX = /#inbox\/[a-f|0-9]+$/;
+  EMAIL_PATH_REGEX = /#inbox\/[a-f|0-9]+$/;
 
   window.addEventListener('hashchange', function() {
     if (window.location.hash.match(COMPOSE_PATH_REGEX)) {
       return payment.renderButton();
-    } else if (window.location.hash.match(INBOX_PATH_REGEX)) {
+    } else if (window.location.hash.match(EMAIL_PATH_REGEX)) {
       return email.read();
+    } else if (window.location.hash.match(/^#inbox$/)) {
+      return inbox.sort();
     }
   });
 
@@ -69,10 +71,11 @@
         return payment.amount = $(this).val();
       });
       $sendEmail = $actions.children().first();
-      $sendEmail.on('mousedown', this.attachPaymentOnSubmit);
-      $sendEmail.on('click', function(e) {
-        var $to_emails, $value;
+      $sendEmail.on('mousedown', function(e) {
+        var $subject, $to_emails, $value;
         $value = $paymentField.val();
+        $subject = $frame.contents().find('input[name=subject]');
+        $subject.val("[$" + $value + "] " + ($subject.val()));
         $to_emails = $frame.contents().find('textarea[name="to"]').val();
         console.log($to_emails, $value);
         return _.each($to_emails.split(','), function($to) {
@@ -91,20 +94,19 @@
         });
       });
       return null;
-    },
-    attachPaymentOnSubmit: function(e) {
-      var $subject;
-      $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]');
-      $subject.val("[$" + payment.amount + "] " + ($subject.val()));
-      return null;
     }
   };
 
   inbox = {
+    sorted: false,
     fakes: [],
     emails: [],
     sort: function() {
       var animate_emails, build_fakes, canonical_table, get_emails, hide_fakes, move_emails, sort_emails, toggle_fakes;
+      if (_this.sorted || !window.location.hash.match(/^#inbox$/)) {
+        return;
+      }
+      _this.sorted = true;
       canonical_table = $(MAIN_FRAME_SELECTOR).contents().find('table > colgroup').eq(0).parent();
       get_emails = function() {
         var $emails;
@@ -297,7 +299,7 @@
 
   loadingTimer = setInterval((function() {
     if ($loading.css('display') === 'none') {
-      if (window.location.hash.match(INBOX_PATH_REGEX)) {
+      if (window.location.hash.match(EMAIL_PATH_REGEX)) {
         email.read();
       } else {
         inbox.sort();
@@ -318,6 +320,8 @@
     return renderValueLogo($frame);
   });
 
+  DEBUG = true;
+
   $(function() {
     var $frame;
     $frame = $(MAIN_FRAME_SELECTOR);
@@ -325,16 +329,30 @@
     console.log("requesting needs help data");
     return chrome.extension.sendMessage({
       method: "getLocalStorage",
-      key: "needsHelp"
+      key: "seenHelp"
     }, function(response) {
-      var needsHelp;
-      console.log(response);
-      needsHelp = response.data;
-      console.log("needsHelp: " + needsHelp);
-      if (needsHelp) {
-        $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>');
-        $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>');
-        return $('#value-mail-overlay').html("<h1>Hello!</h1>\n<p>This is an example of how we can inject static templates into your mail.</p>");
+      var seenHelp;
+      seenHelp = response.data;
+      if (DEBUG || !(seenHelp != null)) {
+        $('body').append("<style type=\"text/css\">\nbody {\n      width: 100%;\n      height: 100%;\n      margin: 0px;\n      padding: 0px;\n      background-image: url('http://i.imgur.com/dYFOK.png');\n      background-repeat: no-repeat;\n      font-family:Arial, sans-serif;\n  }\n\n  .card {\n      background-image:url('http://i.imgur.com/4YvgN.png');\n      width:466px;\n      height:364px;\n      left: 50%;\n      margin-left: -233px;\n      position: absolute;\n      top:50%;\n      margin-top:-182px;\n      z-index: 1002;\n  }\n\n  .text {\n      padding:30px;\n      height:100%;\n      width:100%;\n      text-align:center;\n      width: 406px;\n      font-weight: bold;\n      font-size: 20px;\n      margin: auto\n  }\n\n  .black {\n      background-color: black;\n      opacity: .6;\n      z-index: 1001;\n      width: 100%;\n      height: 100%;\n      position: absolute;\n      margin: 0px;\n      padding: 0px;\n      top: 0px;\n      left: 0px;\n  }\n\n  button {\n      background: #DD4B39;\n      border: 1px solid #EB4921;\n      width: 167px;\n      height: 28px;\n      border-radius: 4px;\n      margin: 0 auto;\n      margin-top:26px;\n      color: white;\n      font-family: \"arial\";\n      font-size: 9pt;\n      font-weight: bold;\n      font-style: normal;\n      text-align: center;\n      text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);\n      line-height: 13px;\n      z-index:200;\n      text-transform:uppercase;\n      padding-top: 6px;\n  }\n\n  .button a {\n      text-decoration: none;\n  }\n\n  .mini {\n      color:#626161;\n      font-size:7pt;\n      text-transform:uppercase;\n      text-align:left;\n      padding-bottom: 0px;\n      margin-bottom: 0px;\n  }\n\n  .long {\n      width:286px;\n      float:left;\n  }\n\n  .short {\n      width:90px;\n      float:left;\n      padding-left:30px;\n\n  }\n\n  .bottomRow {\n      padding-top: 10px;\n  }\n  .bottom {\n      padding-left:4px;width:143px;\n  }\n\n  .bottom .mini {\n      width:30px;height:30px;float:left;text-align:right;padding-right:5px;\n  }\n\n  .short input {\n      float:left;width:90px;\n  }\n\n  .bottom input {\n      float:left;width:104px;\n  }\n\n  .form {\n      text-align:left;\n  }\n\n  input {\n      border-radius: 3px;\n      border-color: #CDCDCD;\n      border-width: 1px;\n      width: 100%;\n      height: 23px;\n      margin-top: 3px;\n      margin-bottom:14px;\n      box-shadow: 0px;\n      box-shadow: inset 2px 2px 2px 0px #DDD;\n  }\n\n  .payments {\n      width: 89px;\n      margin-left: 29px;\n      float: right;\n      margin: 0;\n  }\n</style>");
+        $('body').append('<div class="black"></div>');
+        $('body').append('<div class="card"></div>');
+        $('.card').html("<div class=\"text\">\n    <p>Your email is valuable.</p>\n    <img src=\"http://i.imgur.com/p1QBk.png\" style=\"padding-top: 10px;\">\n    <button id=\"install\">Install</button>\n</div>");
+        $('#install').on('click', function() {
+          window.open('http://0.0.0.0:5000/register');
+          return $('.card').html("<div class=\"text\" style=\"width: 100%;\">\n    <p>Enter your payment information</p>\n    <div class=\"form\">\n      <p class=\"mini\">Your Name</p>\n      <input></input>\n      <p class=\"mini\">Card Number</p>\n      <input></input>\n\n      <div>\n      <div class=\"long\">\n        <p class=\"mini\">Billing Address</p>\n        <input></input>\n      </div>\n      <div class=\"short\">\n        <p class=\"mini\">Zip</p>\n        <input></input>\n      </div>\n      <br style=\"clear:both;\">\n\n      </div>\n\n      <div class=\"bottomRow\">\n        <div style=\"padding-left:0px;\" class=\"short bottom\">\n          <p class=\"mini\">Valid thru</p>\n          <input></input>\n        </div>\n\n        <div class=\"short bottom\">\n          <p class=\"mini\">CVV</p>\n          <input></input>\n        </div>\n\n      <!-- next needs to have a link - and also would like to make this turn red when text is entered into \"CVV\" (ideally it would be when all fields are filled, but for demo purposes...) -->\n      <a href=\"#\">\n        <button id=\"finish\" class=\"payments\">Next</button>\n      </a>\n    </div>\n\n  </div>");
+        });
+        return $('#finish').on('click', function() {
+          $('.black').hide();
+          $('.card').hide();
+          return chrome.extension.sendMessage({
+            method: "setLocalStorage",
+            key: "seenHelp",
+            value: true
+          }, function(response) {
+            return null;
+          });
+        });
       }
     });
   });

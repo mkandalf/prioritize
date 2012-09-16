@@ -23,6 +23,8 @@ except KeyError:
 
 app.secret_key = 'wtfwtfwtf'
 
+payment_secret = '95f636aafff511e1b3c5026ba7cac9da'
+balanced.configure(payment_secret)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
@@ -114,11 +116,16 @@ def execute_payment(amount):
         db.session.commit()
     return Response(response=None)
 
-@app.route('/logout/')
+@app.route('/full_logout/')
+@auth.required
 def logout():
     session = {}
     return "Logged out"
 
+@app.route('/register')
+@auth.required
+def login():
+    return Response(response="<script>window.close();</script>")
 
 @app.route('/')
 def index():

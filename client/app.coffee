@@ -6,14 +6,16 @@ console.log('Value for Gmail extension script loaded')
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 PAYMENT_FIELD_REGEX = /^\[\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\]/
 COMPOSE_PATH_REGEX  = /compose/
-INBOX_PATH_REGEX    = /#inbox\/[a-f|0-9]+$/
+EMAIL_PATH_REGEX    = /#inbox\/[a-f|0-9]+$/
 
 # check when 'compose' view is loaded
 window.addEventListener 'hashchange', ->
   if window.location.hash.match COMPOSE_PATH_REGEX
     payment.renderButton()
-  else if window.location.hash.match INBOX_PATH_REGEX
+  else if window.location.hash.match EMAIL_PATH_REGEX
     email.read()
+  else if window.location.hash.match /^#inbox$/
+    inbox.sort()
 
 # helper method to generate underscore template functions given its dom ID
 template = (domId) ->
@@ -32,7 +34,7 @@ iframe =
       console.log 'loaded css'
       iframe.isLinked = true
 
-# render arbitrary html in the gmail canvas action bar and return the action 
+# render arbitrary html in the gmail canvas action bar and return the action
 # bar element
 renderInActionBar = (el) ->
   $frame = $(MAIN_FRAME_SELECTOR)
@@ -59,10 +61,14 @@ payment =
     $paymentField.on 'blur', (e) -> payment.amount = $(this).val()
 
     $sendEmail = $actions.children().first()
-    $sendEmail.on 'mousedown', @attachPaymentOnSubmit
 
-    $sendEmail.on 'click', (e) ->
+    # TODO: use better event
+    $sendEmail.on 'mousedown', (e) ->
       $value = $paymentField.val()
+
+      $subject = $frame.contents().find('input[name=subject]')
+      $subject.val "[$#{$value}] #{$subject.val()}"
+
       $to_emails = $frame.contents().find('textarea[name="to"]').val()
       console.log $to_emails, $value
       _.each $to_emails.split(','), ($to) ->
@@ -72,17 +78,16 @@ payment =
             chrome.extension.sendMessage {method: "makePayment", to: $data.user, amount: $value}
     null
 
-  attachPaymentOnSubmit: (e) =>
-    # Prepend payment amount in email subject just before sending
-    $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]')
-    $subject.val "[$#{payment.amount}] #{$subject.val()}"
-    # TODO: hit our app's API to save this amount to the database
-    null
-
 inbox =
+  sorted: false
   fakes: []
   emails: []
   sort: =>
+    if @sorted or not window.location.hash.match /^#inbox$/
+      return
+
+    @sorted = true
+
     canonical_table = $(MAIN_FRAME_SELECTOR).contents()
                                             .find('table > colgroup').eq(0)
                                             .parent()
@@ -131,7 +136,7 @@ inbox =
       sorted_emails = sorted_value_emails.concat(_(@emails).difference sorted_value_emails)
       _(sorted_emails).each (email, idx) ->
         email.dest = idx
-    
+
     animate_emails = =>
       console.log @emails[0].node.css 'transition'
       targets = _(@emails).pluck('node').map (node) ->
@@ -144,7 +149,7 @@ inbox =
         email.node.css 'visibility', 'visible'
       for fake in @fakes
         fake.remove()
-    
+
     move_emails = =>
       animate_emails()
 
@@ -177,7 +182,7 @@ inbox =
             false
           else
             true
-        
+
     console.log 'getting emails'
     get_emails()
     console.log 'building dummies'
@@ -211,7 +216,6 @@ email =
 
     $actions.append(PAYMENT_BUTTON)
     $button = $actions.find('#collect-payment-button')
-
     $button.on 'click', (e) -> $(this).addClass('completed')
 
 modal =
@@ -224,7 +228,7 @@ $loading = $('#loading')
 
 loadingTimer = setInterval (->
   if $loading.css('display') == 'none'
-    if window.location.hash.match INBOX_PATH_REGEX
+    if window.location.hash.match EMAIL_PATH_REGEX
       email.read()
     else
       inbox.sort()
@@ -241,11 +245,14 @@ $(MAIN_FRAME_SELECTOR).ready ->
 
   # if window.location.hash.match COMPOSE_PATH_REGEX
   #   payment.renderButton()
-  # else if window.location.hash.match INBOX_PATH_REGEX
+  # else if window.location.hash.match EMAIL_PATH_REGEX
   #   email.read()
 
 
-# DOM ready
+DEBUG = true
+
+
+## DOM ready
 $ ->
   $frame = $(MAIN_FRAME_SELECTOR)
   iframe.linkCSS($frame)
@@ -253,18 +260,206 @@ $ ->
   console.log "requesting needs help data"
   chrome.extension.sendMessage {
     method: "getLocalStorage"
-  , key: "needsHelp"
+  , key: "seenHelp"
   }, (response) ->
-    console.log response
-    needsHelp = response.data
-    console.log "needsHelp: #{needsHelp}"
-    if needsHelp
+    seenHelp = response.data
+    if DEBUG or not seenHelp?
       # Apply black screen on top of gmail
-      $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
-      # Main body for content
-      $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
-      $('#value-mail-overlay').html """
-      <h1>Hello!</h1>
-      <p>This is an example of how we can inject static templates into your mail.</p>
-      """
+      $('body').append """
+      <style type="text/css">
+      body {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            background-image: url('http://i.imgur.com/dYFOK.png');
+            background-repeat: no-repeat;
+            font-family:Arial, sans-serif;
+        }
 
+        .card {
+            background-image:url('http://i.imgur.com/4YvgN.png');
+            width:466px;
+            height:364px;
+            left: 50%;
+            margin-left: -233px;
+            position: absolute;
+            top:50%;
+            margin-top:-182px;
+            z-index: 1002;
+        }
+
+        .text {
+            padding:30px;
+            height:100%;
+            width:100%;
+            text-align:center;
+            width: 406px;
+            font-weight: bold;
+            font-size: 20px;
+            margin: auto
+        }
+
+        .black {
+            background-color: black;
+            opacity: .6;
+            z-index: 1001;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            margin: 0px;
+            padding: 0px;
+            top: 0px;
+            left: 0px;
+        }
+
+        button {
+            background: #DD4B39;
+            border: 1px solid #EB4921;
+            width: 167px;
+            height: 28px;
+            border-radius: 4px;
+            margin: 0 auto;
+            margin-top:26px;
+            color: white;
+            font-family: "arial";
+            font-size: 9pt;
+            font-weight: bold;
+            font-style: normal;
+            text-align: center;
+            text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);
+            line-height: 13px;
+            z-index:200;
+            text-transform:uppercase;
+            padding-top: 6px;
+        }
+
+        .button a {
+            text-decoration: none;
+        }
+
+        .mini {
+            color:#626161;
+            font-size:7pt;
+            text-transform:uppercase;
+            text-align:left;
+            padding-bottom: 0px;
+            margin-bottom: 0px;
+        }
+
+        .long {
+            width:286px;
+            float:left;
+        }
+
+        .short {
+            width:90px;
+            float:left;
+            padding-left:30px;
+
+        }
+
+        .bottomRow {
+            padding-top: 10px;
+        }
+        .bottom {
+            padding-left:4px;width:143px;
+        }
+
+        .bottom .mini {
+            width:30px;height:30px;float:left;text-align:right;padding-right:5px;
+        }
+
+        .short input {
+            float:left;width:90px;
+        }
+
+        .bottom input {
+            float:left;width:104px;
+        }
+
+        .form {
+            text-align:left;
+        }
+
+        input {
+            border-radius: 3px;
+            border-color: #CDCDCD;
+            border-width: 1px;
+            width: 100%;
+            height: 23px;
+            margin-top: 3px;
+            margin-bottom:14px;
+            box-shadow: 0px;
+            box-shadow: inset 2px 2px 2px 0px #DDD;
+        }
+
+        .payments {
+            width: 89px;
+            margin-left: 29px;
+            float: right;
+            margin: 0;
+        }
+      </style>
+      """
+      $('body').append('<div class="black"></div>')
+      # Main content for body
+      $('body').append('<div class="card"></div>')
+      $('.card').html """
+      <div class="text">
+          <p>Your email is valuable.</p>
+          <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
+          <button id="install">Install</button>
+      </div>
+      """
+      $('#install').on 'click', ->
+        window.open 'http://0.0.0.0:5000/register'
+        $('.card').html """
+        <div class="text" style="width: 100%;">
+            <p>Enter your payment information</p>
+            <div class="form">
+              <p class="mini">Your Name</p>
+              <input></input>
+              <p class="mini">Card Number</p>
+              <input></input>
+
+              <div>
+              <div class="long">
+                <p class="mini">Billing Address</p>
+                <input></input>
+              </div>
+              <div class="short">
+                <p class="mini">Zip</p>
+                <input></input>
+              </div>
+              <br style="clear:both;">
+
+              </div>
+
+              <div class="bottomRow">
+                <div style="padding-left:0px;" class="short bottom">
+                  <p class="mini">Valid thru</p>
+                  <input></input>
+                </div>
+
+                <div class="short bottom">
+                  <p class="mini">CVV</p>
+                  <input></input>
+                </div>
+
+              <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
+              <a href="#">
+                <button id="finish" class="payments">Next</button>
+              </a>
+            </div>
+
+          </div>
+        """
+      $('#finish').on 'click', ->
+        $('.black').hide()
+        $('.card').hide()
+        chrome.extension.sendMessage {
+          method: "setLocalStorage"
+        , key: "seenHelp"
+        , value: true
+        }, (response) -> null

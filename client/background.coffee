@@ -2,7 +2,6 @@ base_url = "http://localhost:5000"
 
 # Hook for action after the extension is installed
 onInstall = ->
-    localStorage['needsHelp'] = true
     chrome.tabs.getSelected (tab) ->
         chrome.tabs.update tab.id, {'url': "http://mail.google.com"}
     null
