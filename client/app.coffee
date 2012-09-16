@@ -520,28 +520,23 @@ onSignupComplete = (e) ->
         console.log response.status
         switch response.status
             when 200, 201
-                alert "OK!"
+                # alert "OK!"
                 $('.black').hide()
                 $('.card').hide()
-                chrome.extension.sendMessage {
-                  method: "setLocalStorage"
-                , key: "seenHelp"
-                , value: true
-                }, (response) ->
-                    null
             when 400
-                # missing field
-                alert "Missing field"
-                console.log
+                # alert "Missing field"
                 null
             when 402
                 # unauthorized
-                alert "We couldn't authorize the buyer's credit card"
+                # alert "We couldn't authorize the buyer's credit card"
                 null
             when 404
-                alert "Marketplace uri is incorrect"
+                # alert "Marketplace uri is incorrect"
+                null
             when 500
-                alert "Something bad happened please retry"
+                # alert "Something bad happened please retry"
+                null
+
     $('.card').html """
       <div class="text" style="width: 100%;">
         <div class="signed-up">
@@ -562,3 +557,8 @@ onSignupComplete = (e) ->
     $('#go-inbox').on 'click', (e) ->
       $('.card').fadeOut();
       $('.black').fadeOut();
+      chrome.extension.sendMessage {
+          method: "setLocalStorage"
+        , key: "seenHelp"
+        , value: true
+        }, (response) -> null
