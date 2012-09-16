@@ -6,6 +6,8 @@ console.log('Value for Gmail extension script loaded')
 window.addEventListener 'hashchange', ->
   if window.location.hash.match /compose/
     payment.renderButton()
+  else if window.location.hash.match /^#inbox$/
+    inbox.sort()
 
 # the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
@@ -76,9 +78,15 @@ payment =
     null
 
 inbox =
+  sorted: false
   fakes: []
   emails: []
   sort: =>
+    if @sorted or not window.location.hash.match /^#inbox$/
+      return
+    
+    @sorted = true
+
     canonical_table = $(MAIN_FRAME_SELECTOR).contents()
                                             .find('table > colgroup').eq(0)
                                             .parent()
@@ -142,6 +150,8 @@ inbox =
         fake.remove()
     
     move_emails = =>
+      animate_emails()
+
       for email in @emails
         @emails[email.dest].replacement = email.node
 
@@ -162,7 +172,7 @@ inbox =
           evt = target[0].ownerDocument.createEvent 'MouseEvents'
           evt.initMouseEvent 'mousedown', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null
           target.find('td:nth-child(5)')[0].dispatchEvent evt
-        email.node.on 'mousedown', (e, real) =>
+        email.node.find('td:nth-child(n+5)').on 'mousedown', (e, real) =>
           if e.screenX != 0 or e.screenY != 0
             e.preventDefault()
             e.stopPropagation()
@@ -180,17 +190,14 @@ inbox =
     toggle_fakes()
     console.log 'sorting emails'
     sort_emails()
-    console.log 'moving true emails'
-    move_emails()
     console.log 'animating fakes'
-    setTimeout animate_emails, 1000
+    console.log 'moving true emails'
+    setTimeout move_emails, 1600
     console.log 'hiding fakes'
-    setTimeout hide_fakes, 1650
-    #animate_emails()
+    setTimeout hide_fakes, 3350
 
 email =
   read: ->
-    # TODO: add ajax call to our API to get emailValue
     PAYMENT_BUTTON = "<div id='collect-payment-button'>$#{emailValue}</div>"
 
     $actions = renderInActionBar(PAYMENT_BUTTON)
@@ -225,7 +232,7 @@ $(MAIN_FRAME_SELECTOR).load ->
     email.read()
 
 
-# DOM ready
+## DOM ready
 $ ->
   console.log "requesting needs help data"
   chrome.extension.sendMessage {
