@@ -245,11 +245,193 @@ $ ->
     if needsHelp
       # Apply black screen on top of gmail
       # TODO: swap these out for underscore templates
-      $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
-      # Main body for content
-      $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
-      $('#value-mail-overlay').html """
-      <h1>Hello!</h1>
-      <p>This is an example of how we can inject static templates into your mail.</p>
+      $('body').append """
+      <style type="text/css">
+      body {
+            width: 100%;
+            height: 100%;
+            margin: 0px;
+            padding: 0px;
+            background-image: url('http://i.imgur.com/dYFOK.png');
+            background-repeat: no-repeat;
+            font-family:Arial, sans-serif;
+        }
+
+        .card {
+            background-image:url('http://i.imgur.com/4YvgN.png');
+            width:466px;
+            height:364px;
+            left: 50%;
+            margin-left: -233px;
+            position: absolute;
+            top:50%;
+            margin-top:-182px;
+            z-index: 1002;
+        }
+
+        .text {
+            padding:30px;
+            height:100%;
+            width:100%;
+            text-align:center;
+            width: 406px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .black {
+            background-color: black;
+            opacity: .6;
+            z-index: 1001;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            margin: 0px;
+            padding: 0px;
+            top: 0px;
+            left: 0px;
+        }
+
+        button {
+            background: #DD4B39;
+            border: 1px solid #EB4921;
+            width: 167px;
+            height: 28px;
+            border-radius: 4px;
+            margin: 0 auto;
+            margin-top:26px;
+            color: white;
+            font-family: "arial";
+            font-size: 9pt;
+            font-weight: bold;
+            font-style: normal;
+            text-align: center;
+            text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);
+            line-height: 13px;
+            z-index:200;
+            text-transform:uppercase;
+            padding-top: 6px;
+        }
+
+        .button a {
+            text-decoration: none;
+        }
+            
+        .mini {
+            color:#626161;
+            font-size:7pt;
+            text-transform:uppercase;
+            text-align:left;
+            padding-bottom: 0px;
+            margin-bottom: 0px;
+        }
+
+        .long {
+            width:286px;
+            float:left;
+        }
+
+        .short {
+            width:90px;
+            float:left;
+            padding-left:30px;
+            
+        }
+
+        .bottomRow {
+            padding-top: 10px;
+        }
+        .bottom {
+            padding-left:4px;width:143px;
+        }
+
+        .bottom .mini {
+            width:30px;height:30px;float:left;text-align:right;padding-right:5px;
+        }
+
+        .short input {
+            float:left;width:90px;
+        }
+
+        .bottom input {
+            float:left;width:104px;
+        }
+
+        .form {
+            text-align:left;
+        }
+
+        input {
+            border-radius: 3px;
+            border-color: #CDCDCD;
+            border-width: 1px;
+            width: 100%;
+            height: 23px;
+            margin-top: 3px;
+            margin-bottom:14px;
+            box-shadow: 0px;
+            box-shadow: inset 2px 2px 2px 0px #DDD;
+        }
+
+        .payments {
+            width: 89px;
+            margin-left: 29px;
+            float: right;
+            margin: 0;
+        }
+      </style>
       """
+      $('body').append('<div class="black"></div>')
+      # Main body for content
+      $('body').append('<div class="card"></div>')
+      $('.card').html """
+      <div class="text">
+          <p>Your email is valuable.</p>
+          <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
+          <button id="install">Install</button>
+      </div>
+      """
+      $('#install').on 'click', ->
+          $('.card').html """
+          <div class="text" style="width: 100%;">
+                <p>Enter your payment information</p>
+                <div class="form">
+                    <p class="mini">Your Name</p>
+                    <input></input>
+                    <p class="mini">Card Number</p>
+                    <input></input>
+                    
+                    <div>
+                    <div class="long">
+                        <p class="mini">Billing Address</p>
+                        <input></input>
+                    </div>
+                    <div class="short">
+                        <p class="mini">Zip</p>
+                        <input></input>
+                    </div>
+                    <br style="clear:both;">
+                    
+                    </div>
+                    
+                    <div class="bottomRow">
+                        <div style="padding-left:0px;" class="short bottom">
+                            <p class="mini">Valid thru</p>
+                            <input></input>
+                        </div>
+                
+                        <div class="short bottom">
+                            <p class="mini">CVV</p>
+                            <input></input>
+                        </div>
+                
+                    <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
+                    <a href="next.html">
+                        <button class="payments">Next</button>
+                    </a>
+                </div>
+
+            </div>
+          """
+
 
