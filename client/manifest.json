@@ -29,5 +29,6 @@
   ]
 , "web_accessible_resources": [
     "gmail_canvas.css"
+  , "value_logo.png"
   ]
 }

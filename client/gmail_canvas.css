@@ -1,4 +1,13 @@
-#payment-button {
+#value-text {
+  float: left;
+  background: url("value_logo.png");
+  width: 70px;
+  height: 30px;
+  margin-left: -100px;
+  position: relative;
+  z-index: 1000; }
+
+#payment-button, .gmail-button {
   background-color: #f5f5f5;
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(100%, compact(#f5f5f5, #f1f1f1, false, false, false, false, false, false, false, false)));
   background-image: -webkit-linear-gradient(top, compact(#f5f5f5, #f1f1f1, false, false, false, false, false, false, false, false));
@@ -17,10 +26,10 @@
   margin-right: 15px;
   height: 27px;
   line-height: 27px;
-  padding: 0 0 0 8px;
+  padding: 0 8px;
   display: inline-block;
   position: relative; }
-  #payment-button input {
+  #payment-button input, .gmail-button input {
     float: right;
     width: 30px;
     margin: -1px -1px 0 5px;
@@ -34,8 +43,29 @@
     -ms-transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false);
     -o-transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false);
     transition: compact(border-color 0.1s linear, false, false, false, false, false, false, false, false); }
-    #payment-button input:focus {
+    #payment-button input:focus, .gmail-button input:focus {
       border-color: rgba(0, 0, 0, 0.3); }
+
+#payment-button {
+  padding: 0 0 0 8px; }
+
+#collect-payment-button {
+  -webkit-transition: compact(background-color 0.2s ease-in-out, background-image 0.2s ease-in-out, false, false, false, false, false, false, false);
+  -moz-transition: compact(background-color 0.2s ease-in-out, background-image 0.2s ease-in-out, false, false, false, false, false, false, false);
+  -ms-transition: compact(background-color 0.2s ease-in-out, background-image 0.2s ease-in-out, false, false, false, false, false, false, false);
+  -o-transition: compact(background-color 0.2s ease-in-out, background-image 0.2s ease-in-out, false, false, false, false, false, false, false);
+  transition: compact(background-color 0.2s ease-in-out, background-image 0.2s ease-in-out, false, false, false, false, false, false, false);
+  cursor: pointer; }
+  #collect-payment-button.completed {
+    cursor: auto;
+    color: white;
+    background-color: #6cb87e;
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(100%, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false)));
+    background-image: -webkit-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
+    background-image: -moz-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
+    background-image: -ms-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
+    background-image: -o-linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false));
+    background-image: linear-gradient(top, compact(#6cb87e, #54a767, false, false, false, false, false, false, false, false)); }
 
 /* Table magic */
 .fake-email {

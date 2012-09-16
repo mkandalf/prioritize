@@ -2,14 +2,18 @@
 
 console.log('Value for Gmail extension script loaded')
 
-# check when 'compose' view is loaded
-window.addEventListener 'hashchange', ->
-  if window.location.hash.match /compose/
-    payment.renderButton()
-
 # the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 PAYMENT_FIELD_REGEX = /^\[\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\]/
+COMPOSE_PATH_REGEX  = /compose/
+INBOX_PATH_REGEX    = /#inbox\/[a-f|0-9]+$/
+
+# check when 'compose' view is loaded
+window.addEventListener 'hashchange', ->
+  if window.location.hash.match COMPOSE_PATH_REGEX
+    payment.renderButton()
+  else if window.location.hash.match INBOX_PATH_REGEX
+    email.read()
 
 # helper method to generate underscore template functions given its dom ID
 template = (domId) ->
@@ -32,8 +36,6 @@ iframe =
 # bar element
 renderInActionBar = (el) ->
   $frame = $(MAIN_FRAME_SELECTOR)
-  iframe.linkCSS($frame)
-
   $actions = $frame.contents().find('#\\:ro > div:visible')
                    .find('[role=button]').first().parent()
   $actions.children('span').remove()
@@ -46,9 +48,12 @@ payment =
   renderButton: ->
     PAYMENT_BUTTON = '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>'
 
-    $actions = renderInActionBar(PAYMENT_BUTTON)
-    $paymentField = $actions.find('#payment-button input')
+    $frame = $(MAIN_FRAME_SELECTOR)
+    $actions = $frame.contents().find('#\\:ro [role=button] > b').parent().parent()
+    $actions.children('span').remove()
+    $actions.children().last().before(PAYMENT_BUTTON)
 
+    $paymentField = $actions.find('#payment-button input')
     # HACK: payment field isn't focusing on click by default.
     $paymentField.on 'click', (e) -> $(this).focus()
     $paymentField.on 'blur', (e) -> payment.amount = $(this).val()
@@ -56,9 +61,8 @@ payment =
     $sendEmail = $actions.children().first()
     $sendEmail.on 'mousedown', @attachPaymentOnSubmit
 
-    $paybutton = $actions.find('#payment-button')
-    $paybutton.prevAll('[role=button]:contains("Send")').on 'click', (e) ->
-      $value = $paybutton.find('input').val()
+    $sendEmail.on 'click', (e) ->
+      $value = $paymentField.val()
       $to_emails = $frame.contents().find('textarea[name="to"]').val()
       console.log $to_emails, $value
       _.each $to_emails.split(','), ($to) ->
@@ -190,14 +194,25 @@ inbox =
 
 email =
   read: ->
-    # TODO: add ajax call to our API to get emailValue
-    PAYMENT_BUTTON = "<div id='collect-payment-button'>$#{emailValue}</div>"
+    $frame = $(MAIN_FRAME_SELECTOR)
+    subject = $frame.contents().find('h1 > span').text()
+    emailValue = subject.match PAYMENT_FIELD_REGEX
+    if emailValue?
+      emailValue = emailValue[0][1..-2]
+    else
+      return null
 
-    $actions = renderInActionBar(PAYMENT_BUTTON)
+    PAYMENT_BUTTON = "<div id='collect-payment-button' class='gmail-button'>#{emailValue}</div>"
+
+    $actions = $frame.contents().find('#\\:ro [role=button][title="Back to Inbox"]')
+    unless $actions[0]?
+      $actions = $frame.contents().find('#\\:ro [role=button][data-tooltip="Back to Inbox"]')
+    $actions = $actions.parent().parent()
+
+    $actions.append(PAYMENT_BUTTON)
     $button = $actions.find('#collect-payment-button')
 
     $button.on 'click', (e) -> $(this).addClass('completed')
-    # TODO: fix this function to render the payment button correctly
 
 modal =
   welcome: ->
@@ -209,24 +224,32 @@ $loading = $('#loading')
 
 loadingTimer = setInterval (->
   if $loading.css('display') == 'none'
-    inbox.sort()
+    if window.location.hash.match INBOX_PATH_REGEX
+      email.read()
+    else
+      inbox.sort()
     clearInterval loadingTimer)
   , 50
 
-$(MAIN_FRAME_SELECTOR).load ->
+renderValueLogo = ($frame) ->
+  $userEmail = $frame.contents().find('#gbu > div')
+  $userEmail.before '<div id="value-text"></div>'
+
+$(MAIN_FRAME_SELECTOR).ready ->
   $frame = $(MAIN_FRAME_SELECTOR)
-  iframe.linkCSS($frame)
+  renderValueLogo($frame)
 
-  console.log 'main frame loaded'
-
-  if window.location.hash.match /compose/
-    payment.renderButton()
-  else if window.location.hash.match /#inbox\/[a-f|0-9]+$/
-    email.read()
+  # if window.location.hash.match COMPOSE_PATH_REGEX
+  #   payment.renderButton()
+  # else if window.location.hash.match INBOX_PATH_REGEX
+  #   email.read()
 
 
 # DOM ready
 $ ->
+  $frame = $(MAIN_FRAME_SELECTOR)
+  iframe.linkCSS($frame)
+
   console.log "requesting needs help data"
   chrome.extension.sendMessage {
     method: "getLocalStorage"
@@ -237,7 +260,6 @@ $ ->
     console.log "needsHelp: #{needsHelp}"
     if needsHelp
       # Apply black screen on top of gmail
-      # TODO: swap these out for underscore templates
       $('body').append('<div style="height: 100%; width: 100%; z-index: 1001; position: absolute; top: 0px; left: 0px; opacity: 0.5; background: #666;"></div>')
       # Main body for content
       $('body').append('<div id="value-mail-overlay" style="height: 70%; width: 80%; z-index: 1002; position: absolute; top: 15%; left: 10%; background: white;"></div>')
