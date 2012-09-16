@@ -1,0 +1,211 @@
+html, body{
+	margin: 0px;
+	padding: 0px;
+	background-color: #ffffff;
+	background-image: url(background.png);
+	background-repeat: repeat;
+	background-position: top left;
+	overflow:hidden;
+	text-align:center;
+} 
+
+p {
+	font-family:Arial, sans-serif;
+}
+
+#page-wrapper{
+  position: relative;
+  width: 700px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+p, h1, h2, h3, h4, h5, h6 {margin: 0;} 
+
+.rectangle{background: #cfcfcf;border: none;width: 518px;height: 2px;border-radius: 0px;position: absolute;top: -189px; left: 294px;}
+ 
+.dom-body-text{overflow: hidden;float: none;outline: none;width: 528px;height: 66px;position: absolute;top: -160px; left: 348px;}
+ .dom-body-text p{font-family: Arial;line-height: 1.5;font-size: 32pt;background-color: rgba(0, 0, 0, 0);color: rgb(51, 51, 51);border: none;font-weight: bold;outline: none;text-align: left;text-shadow: none;}
+
+.green {background: #0d783c;}
+.yellow {background: #fcb215;}
+.red {background:#e32338;}
+.blue {background:#3e5aa8;}
+
+.rectangle {
+	border: none;
+	width: 174px;
+	height: 9px;
+	border-radius: 0px;
+	float:left;
+	top: 0px; 
+	position:relative;
+}
+
+.header { width:100%; height:9px; background-image:url('header.png'); background-repeat:x-repeat;}
+
+
+.paper{
+	padding-top: 30px;
+	background: transparent url(paper.png) top left no-repeat;
+	border: none;
+	height: 700px;
+	width: 607px;
+	margin: 0 auto;
+	text-align: center;
+	background-size: 507px;
+	margin-left: -50px;
+	}
+
+.line {background: #cfcfcf;border: none;
+	width: 232px;
+	height: 1px;
+	border-radius: 0px;
+	margin: 0 auto;
+	margin-bottom: 27px;
+	}
+
+.content {
+	width: 460px;
+	margin: 0 auto;
+	text-align: center;
+	height: auto;
+	padding-top: 51px;
+	margin-left: 25px;
+	}
+
+.value {
+	padding-top: 85px;
+	opacity: .8;
+	height: 50px;
+}
+
+.container {
+	padding-top: 45px;
+	height: auto;
+	width: 406px;
+	margin: 0 auto;
+}
+
+.envelope {
+	top: 440px;
+	z-index: 10;
+	position: absolute;
+	width: 500px;
+	display: block;
+	left: 50%;
+	margin-left: -250px;
+}
+
+.headline {
+	font-size: 22px;
+	font-weight: bold;
+	padding-bottom: 12px;
+}
+
+.subheadline {
+	font-size:13px;
+	font-weight:normal;
+}
+
+.preview {
+	height: 135px;
+	width: 100%;
+	text-align: center;
+	padding: 0px 10px;
+	margin: 0 auto;
+	padding-left:89px;
+	padding-top:21px;
+}
+
+.preview img {
+	float:left;
+	padding:13px;
+}
+
+.install {
+	background: #DD4B39;
+	border: 1px solid #EB4921;
+	width: 167px;
+	height: 28px;
+	border-radius: 4px;
+margin: 0 auto;
+margin-top:26px;
+
+	}
+
+.install a {
+	text-decoration: none;
+}
+	
+.text{	
+	color: white;
+	font-family: "arial";
+	font-size: 11pt;
+	font-weight: bold;
+	font-style: normal;
+	text-align: center;
+	text-shadow: 0px 1px 2px rgba(94, 94, 94, 0.37);
+	line-height: 28px;
+	z-index:200;
+}
+
+.text a {
+	text-decoration:none;
+	color:white;
+}
+
+.body_text {
+margin: 15px 54px;
+line-height: 2;
+}
+
+
+/* make keyframes that tell the start state and the end state of our object */
+@-webkit-keyframes moveUp { from { margin-top: 200px; } to { margin-top:0; } }
+@-moz-keyframes moveUp { from { margin-top: 200px; } to { margin-top:0; } }
+@keyframes moveUp { from { margin-top: 200px; } to { margin-top:0; } }
+ 
+.moveup {
+    margin-top: 200px; 
+    -webkit-animation:moveUp ease-in 1;  /* call our keyframe named moveUp, use animattion ease-in and repeat it only 1 time */
+    -moz-animation:moveUp ease-in 1;
+    animation:moveUp ease-in 1;
+ 
+    -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+    -moz-animation-fill-mode:forwards;
+    animation-fill-mode:forwards;
+ 
+    -webkit-animation-duration:1s;
+    -moz-animation-duration:1s;
+    animation-duration:1s;
+
+  -webkit-animation-delay: 0.7s;
+  -moz-animation-delay: 0.7s;
+  animation-delay: 0.7s;
+}
+
+
+.body_text p a {text-decoration: none;
+				color: #4b8efa;
+			}
+
+.body_text p a:hover{text-decoration: none;
+				color: #1c4890;
+			}
+
+
+
+.link_about{
+	text-decoration: none;
+				color: #4b8efa;
+				position: absolute;
+				padding-top: 767px;
+				padding-left: 700px;
+}
+
+.link_about:hover{
+	text-decoration: none;
+				color: #1c4890;
+			
+}
