@@ -420,7 +420,7 @@ $ ->
         </div>
         """
       $('#install').on 'click', ->
-          window.open 'http://0.0.0.0:5000/register'
+          window.open 'http://value.herokuapp.com/register'
           $('.card').html """
           <div class="text" style="width: 100%;">
                 <p>Enter your payment information</p>
