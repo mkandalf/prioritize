@@ -15,31 +15,40 @@ PAYMENT_FIELD_REGEX = /^\[\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\]/
 template = (domId) ->
   _.template ($("##{domId}").html() || "").trim()
 
-# add a <link> tag to the iframe on the gmail app
-linkCSS = ($frame) ->
-  $frame.contents().find('head').append $('<link/>',
-    rel: 'stylesheet'
-    type: 'text/css'
-    href: chrome.extension.getURL('gmail_canvas.css')
-  ).load ->
-    console.log 'loaded css'
+iframe =
+  isLinked: false
+  linkCSS: ($frame) ->
+    return null if iframe.isLinked
+    # add a <link> tag to the iframe on the gmail app
+    $frame.contents().find('head').append $('<link/>',
+      rel: 'stylesheet'
+      type: 'text/css'
+      href: chrome.extension.getURL('gmail_canvas.css')
+    ).load ->
+      console.log 'loaded css'
+      iframe.isLinked = true
+
+# render arbitrary html in the gmail canvas action bar and return the action 
+# bar element
+renderInActionBar = (el) ->
+  $frame = $(MAIN_FRAME_SELECTOR)
+  iframe.linkCSS($frame)
+
+  $actions = $frame.contents().find('#\\:ro > div:visible')
+                   .find('[role=button]').first().parent()
+  $actions.children('span').remove()
+  # TODO: replace with handlebars template
+  $actions.children().last().before(el)
+  return $actions
 
 # all kinds of payment stuffs
 payment =
   renderButton: ->
-    $frame = $(MAIN_FRAME_SELECTOR)
-    linkCSS($frame)
+    PAYMENT_BUTTON = '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>'
 
-    $actions = $frame.contents().find('div[role=navigation]').last()
-                     .children().first()
-
-    $actions.children('span').remove()
-    # append '$' in compose view after email actions
-    # TODO: replace with handlebars template
-    $actions.children().last().before(
-      '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>')
-
+    $actions = renderInActionBar(PAYMENT_BUTTON)
     $paymentField = $actions.find('#payment-button input')
+
     # HACK: payment field isn't focusing on click by default.
     $paymentField.on 'click', (e) -> $(this).focus()
     $paymentField.on 'blur', (e) -> payment.amount = $(this).val()
@@ -50,9 +59,9 @@ payment =
 
   attachPaymentOnSubmit: (e) =>
     # Prepend payment amount in email subject just before sending
-    amount = payment.amount
     $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]')
-    $subject.val "[$#{amount}] #{$subject.val()}"
+    $subject.val "[$#{payment.amount}] #{$subject.val()}"
+    # TODO: hit our app's API to save this amount to the database
     null
 
 
@@ -164,7 +173,6 @@ inbox =
           else
             true
         
-
     console.log 'getting emails'
     get_emails()
     console.log 'building dummies'
@@ -178,6 +186,17 @@ inbox =
     setTimeout hide_fakes, 1650
     #animate_emails()
     #hide_fakes()
+
+email =
+  read: ->
+    # TODO: add ajax call to our API to get emailValue
+    PAYMENT_BUTTON = "<div id='collect-payment-button'>$#{emailValue}</div>"
+
+    $actions = renderInActionBar(PAYMENT_BUTTON)
+    $button = $actions.find('#collect-payment-button')
+
+    $button.on 'click', (e) -> $(this).addClass('completed')
+    # TODO: fix this function to render the payment button correctly
 
 modal =
   welcome: ->
@@ -201,6 +220,8 @@ $(MAIN_FRAME_SELECTOR).load ->
 
   if window.location.hash.match /compose/
     payment.renderButton()
+  else if window.location.match /#inbox\/[a-f|0-9]+$/
+    email.read()
 
 
 # DOM ready
