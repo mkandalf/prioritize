@@ -26,7 +26,7 @@ linkCSS = ($frame) ->
 
 # all kinds of payment stuffs
 payment =
-  renderButton: =>
+  renderButton: ->
     $frame = $(MAIN_FRAME_SELECTOR)
     linkCSS($frame)
 
@@ -42,24 +42,18 @@ payment =
     $paymentField = $actions.find('#payment-button input')
     # HACK: payment field isn't focusing on click by default.
     $paymentField.on 'click', (e) -> $(this).focus()
-    $paymentField.on 'blur', @paymentFieldHandler
+    $paymentField.on 'blur', (e) -> payment.amount = $(this).val()
 
-  hasCreatedPayment: false
+    $sendEmail = $actions.children().first()
+    $sendEmail.on 'mousedown', @attachPaymentOnSubmit
+    null
 
-  paymentFieldHandler: (e) =>
-    amount = $(e.currentTarget).val()
-    console.log amount
-
+  attachPaymentOnSubmit: (e) =>
+    # Prepend payment amount in email subject just before sending
+    amount = payment.amount
     $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]')
-    if ((amount * 1) == 0) # Coerce to a number
-      # Clear the subj amount if The field is empty or a zero value
-      $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "").trim())
-      payment.hasCreatedPayment = false
-    else if payment.hasCreatedPayment
-      $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "[$#{amount}]"))
-    else
-      payment.hasCreatedPayment = true
-      $subject.val "[$#{amount}] #{$subject.val()}"
+    $subject.val "[$#{amount}] #{$subject.val()}"
+    null
 
 
 inbox =

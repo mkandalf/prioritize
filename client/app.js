@@ -33,7 +33,7 @@
 
   payment = {
     renderButton: function() {
-      var $actions, $frame, $paymentField;
+      var $actions, $frame, $paymentField, $sendEmail;
       $frame = $(MAIN_FRAME_SELECTOR);
       linkCSS($frame);
       $actions = $frame.contents().find('div[role=navigation]').last().children().first();
@@ -43,23 +43,19 @@
       $paymentField.on('click', function(e) {
         return $(this).focus();
       });
-      return $paymentField.on('blur', _this.paymentFieldHandler);
+      $paymentField.on('blur', function(e) {
+        return payment.amount = $(this).val();
+      });
+      $sendEmail = $actions.children().first();
+      $sendEmail.on('mousedown', this.attachPaymentOnSubmit);
+      return null;
     },
-    hasCreatedPayment: false,
-    paymentFieldHandler: function(e) {
+    attachPaymentOnSubmit: function(e) {
       var $subject, amount;
-      amount = $(e.currentTarget).val();
-      console.log(amount);
+      amount = payment.amount;
       $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]');
-      if ((amount * 1) === 0) {
-        $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "").trim());
-        return payment.hasCreatedPayment = false;
-      } else if (payment.hasCreatedPayment) {
-        return $subject.val($subject.val().replace(PAYMENT_FIELD_REGEX, "[$" + amount + "]"));
-      } else {
-        payment.hasCreatedPayment = true;
-        return $subject.val("[$" + amount + "] " + ($subject.val()));
-      }
+      $subject.val("[$" + amount + "] " + ($subject.val()));
+      return null;
     }
   };
 
