@@ -1,8 +1,16 @@
 @import 'lib/css/bourbon/bourbon';
 
+#value-text {
+  float: left;
+  background: url('value_logo.png');
+  width: 70px;
+  height: 30px;
+  margin-left: -100px;
+  position: relative;
+  z-index: 1000;
+}
 
-
-#payment-button {
+#payment-button, .gmail-button {
   @include linear-gradient(#F5F5F5, #F1F1F1);
   @include border-radius(3px);
   border: 1px solid rgba(0,0,0,0.1);
@@ -14,7 +22,7 @@
   margin-right: 15px;
   height: 27px;
   line-height: 27px;
-  padding: 0 0 0 8px;
+  padding: 0 8px;
   display: inline-block;
   position: relative;
 
@@ -31,6 +39,21 @@
     &:focus {
       border-color: rgba(0,0,0,0.3);
     }
+  }
+}
+
+#payment-button {
+  padding: 0 0 0 8px;
+}
+
+#collect-payment-button {
+  @include transition(background-color 0.2s ease-in-out, 
+                      background-image 0.2s ease-in-out);
+  cursor: pointer;
+  &.completed {
+    cursor: auto;
+    color: white;
+    @include linear-gradient(#6cb87e, #54a767);
   }
 }
 

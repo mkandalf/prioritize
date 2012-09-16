@@ -17,6 +17,7 @@
     , "js": [
         "lib/js/jquery.min.js"
       , "lib/js/lodash.min.js"
+      , "lib/js/balanced.js"
       , "app.js"
       ]
     }
@@ -29,5 +30,6 @@
   ]
 , "web_accessible_resources": [
     "gmail_canvas.css"
+  , "value_logo.png"
   ]
 }

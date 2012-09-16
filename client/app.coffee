@@ -2,16 +2,20 @@
 
 console.log('Value for Gmail extension script loaded')
 
-# check when 'compose' view is loaded
-window.addEventListener 'hashchange', ->
-  if window.location.hash.match /compose/
-    payment.renderButton()
-  else if window.location.hash.match /^#inbox$/
-    inbox.sort()
-
 # the iframe that contains the main gmail app
 MAIN_FRAME_SELECTOR = '#canvas_frame'
 PAYMENT_FIELD_REGEX = /^\[\$[+-]?[0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?\]/
+COMPOSE_PATH_REGEX  = /compose/
+EMAIL_PATH_REGEX    = /#inbox\/[a-f|0-9]+$/
+
+# check when 'compose' view is loaded
+window.addEventListener 'hashchange', ->
+  if window.location.hash.match COMPOSE_PATH_REGEX
+    payment.renderButton()
+  else if window.location.hash.match EMAIL_PATH_REGEX
+    email.read()
+  else if window.location.hash.match /^#inbox$/
+    inbox.sort()
 
 # helper method to generate underscore template functions given its dom ID
 template = (domId) ->
@@ -30,12 +34,10 @@ iframe =
       console.log 'loaded css'
       iframe.isLinked = true
 
-# render arbitrary html in the gmail canvas action bar and return the action 
+# render arbitrary html in the gmail canvas action bar and return the action
 # bar element
 renderInActionBar = (el) ->
   $frame = $(MAIN_FRAME_SELECTOR)
-  iframe.linkCSS($frame)
-
   $actions = $frame.contents().find('#\\:ro > div:visible')
                    .find('[role=button]').first().parent()
   $actions.children('span').remove()
@@ -48,19 +50,25 @@ payment =
   renderButton: ->
     PAYMENT_BUTTON = '<div id="payment-button">$<input tabindex="2" type="text" name="pay_amount" /></div>'
 
-    $actions = renderInActionBar(PAYMENT_BUTTON)
-    $paymentField = $actions.find('#payment-button input')
+    $frame = $(MAIN_FRAME_SELECTOR)
+    $actions = $frame.contents().find('#\\:ro [role=button] > b').parent().parent()
+    $actions.children('span').remove()
+    $actions.children().last().before(PAYMENT_BUTTON)
 
+    $paymentField = $actions.find('#payment-button input')
     # HACK: payment field isn't focusing on click by default.
     $paymentField.on 'click', (e) -> $(this).focus()
     $paymentField.on 'blur', (e) -> payment.amount = $(this).val()
 
     $sendEmail = $actions.children().first()
-    $sendEmail.on 'mousedown', @attachPaymentOnSubmit
 
-    $paybutton = $actions.find('#payment-button')
-    $paybutton.prevAll('[role=button]:contains("Send")').on 'click', (e) ->
-      $value = $paybutton.find('input').val()
+    # TODO: use better event
+    $sendEmail.on 'mousedown', (e) ->
+      $value = $paymentField.val()
+
+      $subject = $frame.contents().find('input[name=subject]')
+      $subject.val "[$#{$value}] #{$subject.val()}"
+
       $to_emails = $frame.contents().find('textarea[name="to"]').val()
       console.log $to_emails, $value
       _.each $to_emails.split(','), ($to) ->
@@ -70,13 +78,6 @@ payment =
             chrome.extension.sendMessage {method: "makePayment", to: $data.user, amount: $value}
     null
 
-  attachPaymentOnSubmit: (e) =>
-    # Prepend payment amount in email subject just before sending
-    $subject = $(MAIN_FRAME_SELECTOR).contents().find('input[name=subject]')
-    $subject.val "[$#{payment.amount}] #{$subject.val()}"
-    # TODO: hit our app's API to save this amount to the database
-    null
-
 inbox =
   sorted: false
   fakes: []
@@ -84,7 +85,7 @@ inbox =
   sort: =>
     if @sorted or not window.location.hash.match /^#inbox$/
       return
-    
+
     @sorted = true
 
     canonical_table = $(MAIN_FRAME_SELECTOR).contents()
@@ -135,7 +136,7 @@ inbox =
       sorted_emails = sorted_value_emails.concat(_(@emails).difference sorted_value_emails)
       _(sorted_emails).each (email, idx) ->
         email.dest = idx
-    
+
     animate_emails = =>
       console.log @emails[0].node.css 'transition'
       targets = _(@emails).pluck('node').map (node) ->
@@ -148,7 +149,7 @@ inbox =
         email.node.css 'visibility', 'visible'
       for fake in @fakes
         fake.remove()
-    
+
     move_emails = =>
       animate_emails()
 
@@ -181,7 +182,7 @@ inbox =
             false
           else
             true
-        
+
     console.log 'getting emails'
     get_emails()
     console.log 'building dummies'
@@ -198,13 +199,31 @@ inbox =
 
 email =
   read: ->
-    PAYMENT_BUTTON = "<div id='collect-payment-button'>$#{emailValue}</div>"
+    $frame = $(MAIN_FRAME_SELECTOR)
+    subject = $frame.contents().find('h1 > span').text()
+    emailValue = subject.match PAYMENT_FIELD_REGEX
+    if emailValue?
+      emailValue = emailValue[0][1..-2]
+    else
+      return null
 
-    $actions = renderInActionBar(PAYMENT_BUTTON)
+    PAYMENT_BUTTON = "<div id='collect-payment-button' class='gmail-button'>#{emailValue}</div>"
+
+    $actions = $frame.contents().find('#\\:ro [role=button][title="Back to Inbox"]')
+    unless $actions[0]?
+      $actions = $frame.contents().find('#\\:ro [role=button][data-tooltip="Back to Inbox"]')
+    $actions = $actions.parent().parent()
+
+    $actions.append(PAYMENT_BUTTON)
     $button = $actions.find('#collect-payment-button')
 
-    $button.on 'click', (e) -> $(this).addClass('completed')
-    # TODO: fix this function to render the payment button correctly
+    $button.on 'click', (e) ->
+      $(this).addClass('completed')
+      # ajax call to our API to charge payment
+      from = $frame.content().find('span[email] ~ .go').text()
+      value = parseFloat emailValue[1..], 10
+      chrome.extension.sendMessage {method: "getUser", email: from}, (resp) ->
+        chrome.extension.sendMessage {method: "chargePayment", to: resp.user, amount: value}
 
 modal =
   welcome: ->
@@ -216,20 +235,20 @@ $loading = $('#loading')
 
 loadingTimer = setInterval (->
   if $loading.css('display') == 'none'
-    inbox.sort()
+    if window.location.hash.match EMAIL_PATH_REGEX
+      email.read()
+    else
+      inbox.sort()
     clearInterval loadingTimer)
   , 50
 
-$(MAIN_FRAME_SELECTOR).load ->
+renderValueLogo = ($frame) ->
+  $userEmail = $frame.contents().find('#gbu > div')
+  $userEmail.before '<div id="value-text"></div>'
+
+$(MAIN_FRAME_SELECTOR).ready ->
   $frame = $(MAIN_FRAME_SELECTOR)
-  iframe.linkCSS($frame)
-
-  console.log 'main frame loaded'
-
-  if window.location.hash.match /compose/
-    payment.renderButton()
-  else if window.location.hash.match /#inbox\/[a-f|0-9]+$/
-    email.read()
+  renderValueLogo($frame)
 
 
 DEBUG = true
@@ -237,6 +256,9 @@ DEBUG = true
 
 ## DOM ready
 $ ->
+  $frame = $(MAIN_FRAME_SELECTOR)
+  iframe.linkCSS($frame)
+
   console.log "requesting needs help data"
   chrome.extension.sendMessage {
     method: "getLocalStorage"
@@ -245,7 +267,6 @@ $ ->
     seenHelp = response.data
     if DEBUG or not seenHelp?
       # Apply black screen on top of gmail
-      # TODO: swap these out for underscore templates
       $('body').append """
       <style type="text/css">
       body {
@@ -318,7 +339,7 @@ $ ->
         .button a {
             text-decoration: none;
         }
-            
+
         .mini {
             color:#626161;
             font-size:7pt;
@@ -326,7 +347,6 @@ $ ->
             text-align:left;
             padding-bottom: 0px;
             margin-bottom: 0px;
-            line-height: 10px;
         }
 
         .two-line {
@@ -342,7 +362,7 @@ $ ->
             width:90px;
             float:left;
             padding-left:30px;
-            
+
         }
 
         .bottomRow {
@@ -390,15 +410,15 @@ $ ->
       </style>
       """
       $('body').append('<div class="black"></div>')
-      # Main body for content
+      # Main content for body
       $('body').append('<div class="card"></div>')
       $('.card').html """
-      <div class="text">
-          <p>Your email is valuable.</p>
-          <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
-          <button id="install">Install</button>
-      </div>
-      """
+        <div class="text">
+            <p>Your email is valuable.</p>
+            <img src="http://i.imgur.com/p1QBk.png" style="padding-top: 10px;">
+            <button id="install">Install</button>
+        </div>
+        """
       $('#install').on 'click', ->
           window.open 'http://0.0.0.0:5000/register'
           $('.card').html """
@@ -406,48 +426,94 @@ $ ->
                 <p>Enter your payment information</p>
                 <div class="form">
                     <p class="mini">Your Name</p>
-                    <input></input>
+                    <input id="name"></input>
                     <p class="mini">Card Number</p>
-                    <input></input>
-                    
+                    <input id="card_number"></input>
+
                     <div>
                     <div class="long">
                         <p class="mini">Billing Address</p>
-                        <input></input>
+                        <input id="street_address"></input>
                     </div>
                     <div class="short">
                         <p class="mini">Zip</p>
-                        <input></input>
+                        <input id="postal_code"></input>
                     </div>
                     <br style="clear:both;">
-                    
+
                     </div>
-                    
+
                     <div class="bottomRow">
                         <div style="padding-left:0px;" class="short bottom">
-                            <p class="mini two-line">Valid thru</p>
-                            <input></input>
+                            <p class="mini">Exp</p>
+                            <input id="expiration"></input>
                         </div>
-                
+
                         <div class="short bottom">
                             <p class="mini">CVV</p>
-                            <input></input>
+                            <input id="security_code"></input>
                         </div>
-                
+
                     <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
                     <a href="#">
                         <button id="finish" class="payments">Next</button>
                     </a>
                 </div>
 
+              <!-- next needs to have a link - and also would like to make this turn red when text is entered into "CVV" (ideally it would be when all fields are filled, but for demo purposes...) -->
+              <a href="#">
+                <button id="finish" class="payments">Next</button>
+              </a>
             </div>
           """
           $('#finish').on 'click', ->
-              $('.black').hide()
-              $('.card').hide()
-              chrome.extension.sendMessage {
-                method: "setLocalStorage"
-              , key: "seenHelp"
-              , value: true
-              }, (response) ->
-                  null
+              marketplaceUri = "/v1/marketplaces/TEST-MP1m5fOk5GfP8YOKLODBqFiW"
+              balanced.init(marketplaceUri);
+              expiration_month = null
+              expiration_year = null
+              # 'valid-thru' should be of form 1/2000 or 1/00
+              expires = $("#expiration").val()?.split('/')
+              if expires?.length == 2
+                  expiration_month = expires?[0]
+                  expiration_year = expires?[1]
+                  if expiration_year?.length == 2
+                      # assume it's 20??
+                      expiration_year = "20" + expiration_year
+              cardData =
+                  name: $("#name").val()
+                  card_number: $("#card_number").val()
+                  expiration_month: expiration_month
+                  expiration_year: expiration_year
+                  security_code: $("#security_code").val()
+                  street_address: $("#street_address").val()
+                  postal_code: $("#postal_code").val()
+                  country_code: "USA"
+              console.log cardData
+              balanced.card.create cardData, (response) ->
+                  console.log "Got response!"
+                  console.log response.error
+                  console.log response.status
+                  switch response.status
+                      when 200, 201
+                          alert "OK!"
+                          $('.black').hide()
+                          $('.card').hide()
+                          chrome.extension.sendMessage {
+                            method: "setLocalStorage"
+                          , key: "seenHelp"
+                          , value: true
+                          }, (response) ->
+                              null
+                      when 400
+                          # missing field
+                          alert "missing field"
+                          console.log
+                          null
+                      when 402
+                          # unauthorized
+                          alert "we couldn't authorize the buyer's credit card"
+                          null
+                      when 404
+                          alert "marketplace uri is incorrect"
+                      when 500
+                          alert "something bad happened please retry"
