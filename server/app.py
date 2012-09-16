@@ -2,6 +2,7 @@ import os
 import json
 
 #from flask_oauth import OAuth
+import balanced
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from flask.ext.googleauth import GoogleAuth
@@ -25,6 +26,9 @@ app.secret_key = 'wtfwtfwtf'
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False)
+
+    card_uri = db.Column(db.String(255), nullable=True, default='')
+    bank_account_uri = db.Column(db.String(255), nullable=True, default='')
 
     name = db.Column(db.String(32), nullable=True, default='')
     email = db.Column(db.String(255), nullable=True)
@@ -81,9 +85,12 @@ def lookup_user():
 @auth.required
 def make_payment(receiver_id):
     """Make a new payment"""
-    amount = request.form.get('amount')
+    amount = request.form.get('amount')  # in cents
     print amount
     payment = Payment(sender_id=session['user'].id, receiver_id=receiver_id, amount=amount)
+    buyer = balanced.Marketplace.my_marketplace.create_buyer(session['user'].email,
+                                                             card_uri=session['user'].card_uri)
+    buyer.debit(amount, appears_on_statement_as='value mail')
     db.session.add(payment)
     db.session.commit()
     return Response(response=None)
@@ -94,6 +101,15 @@ def execute_payment(amount):
     """Execute a payment"""
     payment = Payment.query.filter(and_(Payment.receiver_id==session['user'].id, Payment.amount==amount, Payment.executed==False)).first()
     if payment:
+        merchant = balanced.Marketplace.my_marketplace.create_merchant(
+            session['user'].email,
+            {
+                "type": "person",
+                "name": session['user'].name,
+            },
+            name=session['user'].name,
+            bank_account_uri=session['user'].bank_account_uri)
+        merchant.credit(amount, appears_on_statement_as='value mail')
         payment.executed = True
         db.session.commit()
     return Response(response=None)
